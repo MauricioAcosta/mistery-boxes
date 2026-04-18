@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker --version)",
+      "Bash(docker-compose --version)",
+      "Bash(python3 -c \"import secrets; print\\('SECRET_KEY=' + secrets.token_hex\\(32\\)\\); print\\('JWT_SECRET_KEY=' + secrets.token_hex\\(32\\)\\)\")",
+      "Bash(curl -s http://localhost/api/boxes)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost/)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'Boxes cargadas: {len\\(d\\)}'\\); [print\\('  -', b['name'], '$'+str\\(b['price']\\)\\) for b in d]\")",
+      "Bash(curl -s -X POST http://localhost/api/auth/register -H 'Content-Type: application/json' -d '{\"username\":\"testuser\",\"email\":\"test@test.com\",\"password\":\"password123\"}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Token OK:', bool\\(d.get\\('token'\\)\\)\\); print\\('User:', d.get\\('user',{}\\).get\\('username'\\)\\); print\\('Wallet:', d.get\\('wallet',{}\\).get\\('balance'\\)\\)\")",
+      "Bash(ls /home/andy/work/mistery-boxes/frontend/.env*)"
+    ],
+    "additionalDirectories": [
+      "/home/andy/.claude/projects/-home-andy-work-mistery-boxes/memory"
+    ]
+  }
+}

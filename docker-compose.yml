@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: mb_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mysteryboxes}
+      POSTGRES_USER: ${POSTGRES_USER:-mbuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mbpass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mbuser} -d ${POSTGRES_DB:-mysteryboxes}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mb_net
+
+  # ── Flask Backend ──────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mb_backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mbuser}:${POSTGRES_PASSWORD:-mbpass}@db:5432/${POSTGRES_DB:-mysteryboxes}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mb_net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/api/boxes')\" 2>/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  # ── React Frontend (Vite dev server) ──────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mb_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: /api
+    depends_on:
+      - backend
+    networks:
+      - mb_net
+
+  # ── Nginx Reverse Proxy ────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mb_nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - mb_net
+
+volumes:
+  pgdata:
+
+networks:
+  mb_net:
+    driver: bridge
