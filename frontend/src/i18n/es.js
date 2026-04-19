@@ -147,26 +147,45 @@ export const es = {
 
   prize: {
     title: '¡Ganaste!',
+    subtitle: '¿Qué quieres hacer con tu premio?',
     retailValue: 'Valor al público:',
-    exchangeBtn: 'Canjear por ${{amount}}',
-    shipBtn: 'Enviar a mí (gratis)',
+    // Opción 1 — Envío físico
+    shipOptionTitle: '📦 Recibir Físicamente',
+    shipOptionDesc: 'Te enviamos el producto a tu puerta',
+    shipOptionCost: 'Costo de envío: ${{cost}}',
+    shipBtn: 'Solicitar Envío',
+    // Opción 2 — Vender en plataforma (DESTACADA)
+    sellOptionTitle: '🏪 Vender en Plataforma',
+    sellOptionDesc: 'Vende tu premio de vuelta a la plataforma',
+    sellOptionAmount: 'Recibes ${{amount}} ({{pct}}% del valor)',
+    sellOptionBadge: 'MEJOR OFERTA',
+    sellBtn: 'Vender — ${{amount}}',
+    sellSuccess: 'Vendido exitosamente',
+    sellDesc: '${{amount}} han sido acreditados a tu billetera.',
+    // Opción 3 — Canjear por saldo
+    exchangeOptionTitle: '💰 Canjear por Saldo',
+    exchangeOptionDesc: 'Convierte tu premio en crédito',
+    exchangeOptionAmount: 'Recibes ${{amount}} ({{pct}}% del valor)',
+    exchangeBtn: 'Canjear — ${{amount}}',
+    // Comunes
     proof: 'Prueba de Juego Justo',
     serverSeed: 'Semilla servidor',
     clientSeed: 'Semilla cliente',
     nonce: 'Nonce',
     result: 'Resultado',
     shippingAddress: 'Dirección de Envío',
-    confirmShipment: 'Confirmar Envío',
+    confirmShipment: 'Confirmar Envío — ${{cost}}',
     submitting: 'Enviando…',
     processing: 'Procesando…',
     back: 'Volver',
-    walletCredited: 'añadido a tu billetera!',
-    commission: 'Se aplicó una comisión del 10%.',
+    walletCredited: 'acreditado a tu billetera',
     shipSuccess: '¡Envío solicitado!',
     shipDesc: 'Te enviaremos los detalles de seguimiento en 24 horas.',
     viewHistory: 'Ver Historial',
     exchangeFailed: 'Error al canjear',
+    sellFailed: 'Error al vender',
     shipFailed: 'Error al solicitar envío',
+    insufficientShipping: 'Saldo insuficiente para el costo de envío',
     fields: {
       full_name: 'Nombre Completo',
       address: 'Dirección',
@@ -174,6 +193,23 @@ export const es = {
       country: 'País',
       postal_code: 'Código Postal',
     },
+  },
+
+  boxDetail: {
+    noCoinsOption: 'Esta caja no acepta coins',
+    needMoreCoins: 'Te faltan {{amount}} coins',
+  },
+
+  coins: {
+    balance: '🪙 {{amount}} coins',
+    buyTitle: 'Comprar Coins',
+    buyDesc: '1 USD = 100 coins',
+    usdLabel: 'Monto en USD',
+    preview: '{{coins}} coins',
+    buyBtn: 'Comprar coins',
+    buying: 'Procesando…',
+    success: '¡Compraste {{coins}} coins!',
+    failed: 'Error al comprar coins',
   },
 
   rarity: {

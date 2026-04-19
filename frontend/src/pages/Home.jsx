@@ -8,19 +8,21 @@ const CATEGORY_KEYS = ['all', 'tech', 'gaming', 'fashion', 'accessories']
 
 export default function Home() {
   const { t, lang } = useI18n()
-  const { theme } = useTheme()
+  const { theme, clientId } = useTheme()
   const [boxes, setBoxes] = useState([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('all')
 
   useEffect(() => {
     setLoading(true)
-    const params = category !== 'all' ? { category } : {}
+    const params = {}
+    if (category !== 'all') params.category = category
+    if (clientId && clientId !== 'default') params.client_id = clientId
     api.get('/boxes', { params })
       .then(res => setBoxes(res.data))
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [category])
+  }, [category, clientId])
 
   const steps = t('home.steps')   // returns the array directly
 

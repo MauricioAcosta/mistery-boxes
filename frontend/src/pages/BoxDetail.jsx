@@ -18,6 +18,7 @@ export default function BoxDetail() {
   const [animData, setAnimData]           = useState(null)    // drives BoxOpenScene
   const [currentOpening, setCurrentOpening] = useState(null) // drives PrizeModal
   const [error, setError]                 = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('usd')  // 'usd' | 'coins'
 
   useEffect(() => {
     api.get(`/boxes/${id}`)
@@ -34,9 +35,9 @@ export default function BoxDetail() {
     setError('')
     setOpening(true)
     try {
-      const res  = await api.post(`/boxes/${id}/open`)
+      const res  = await api.post(`/boxes/${id}/open`, { payment_method: paymentMethod })
       const data = res.data
-      setAnimData({ items: box.items, winnerId: data.won.id, response: data })
+      setAnimData({ items: box.items, winnerId: data.winner_box_item_id, response: data })
       refreshWallet()
     } catch (e) {
       setError(e.response?.data?.error || t('boxDetail.failedOpen'))
@@ -62,13 +63,21 @@ export default function BoxDetail() {
   if (!box)
     return <div className="page"><div className="empty-state">{t('boxDetail.notFound')}</div></div>
 
-  const balance   = parseFloat(wallet?.balance || 0)
-  const canAfford = balance >= box.price
+  const balance      = parseFloat(wallet?.balance || 0)
+  const coins        = wallet?.coins || 0
+  const canAffordUsd   = balance >= box.price
+  const canAffordCoins = box.price_coins != null && coins >= box.price_coins
+  const canAfford    = paymentMethod === 'coins' ? canAffordCoins : canAffordUsd
 
   const openBtnLabel = () => {
-    if (opening)   return t('boxDetail.rolling')
-    if (!user)     return t('boxDetail.loginToOpen')
-    if (!canAfford) return t('boxDetail.needMore', { amount: (box.price - balance).toFixed(2) })
+    if (opening) return t('boxDetail.rolling')
+    if (!user)   return t('boxDetail.loginToOpen')
+    if (paymentMethod === 'coins') {
+      if (!box.price_coins) return t('boxDetail.noCoinsOption')
+      if (!canAffordCoins)  return t('boxDetail.needMoreCoins', { amount: box.price_coins - coins })
+      return `${t('boxDetail.openBox')} — 🪙 ${box.price_coins}`
+    }
+    if (!canAffordUsd) return t('boxDetail.needMore', { amount: (box.price - balance).toFixed(2) })
     return `${t('boxDetail.openBox')} — $${box.price.toFixed(2)}`
   }
 
@@ -102,6 +111,24 @@ export default function BoxDetail() {
           </div>
 
           {error && <div className="alert alert-error">{error}</div>}
+
+          {/* Payment method selector */}
+          {user && !animData && box.price_coins && (
+            <div className="payment-selector">
+              <button
+                className={`payment-opt ${paymentMethod === 'usd' ? 'active' : ''}`}
+                onClick={() => setPaymentMethod('usd')}
+              >
+                💵 ${box.price.toFixed(2)}
+              </button>
+              <button
+                className={`payment-opt ${paymentMethod === 'coins' ? 'active' : ''}`}
+                onClick={() => setPaymentMethod('coins')}
+              >
+                🪙 {box.price_coins} coins
+              </button>
+            </div>
+          )}
 
           {/* Show CTA only while not animating */}
           {!animData && (

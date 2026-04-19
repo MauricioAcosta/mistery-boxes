@@ -11,6 +11,8 @@ class Box(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.String(500))
     category = db.Column(db.String(50))
+    client_id = db.Column(db.String(20), default='default')
+    price_coins = db.Column(db.Integer, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     total_openings = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -47,6 +49,8 @@ class Box(db.Model):
             'price': float(self.price),
             'image_url': self.image_url,
             'category': self.category,
+            'client_id': self.client_id,
+            'price_coins': self.price_coins,
             'total_openings': self.total_openings,
             'expected_value': round(self.expected_value, 2),
             'house_edge_pct': self.house_edge_pct,

@@ -31,6 +31,9 @@ export default function Navbar() {
           <Link to="/" className="nav-link">{t('nav.boxes')}</Link>
           <Link to="/verify" className="nav-link">{t('nav.verify')}</Link>
           {user && <Link to="/history" className="nav-link">{t('nav.history')}</Link>}
+          {user && ['super_admin', 'admin_provider', 'admin'].includes(user.role) && (
+            <Link to="/admin" className="nav-link nav-link-admin">⚙️ Admin</Link>
+          )}
         </div>
 
         <div className="navbar-actions">
@@ -64,6 +67,9 @@ export default function Navbar() {
               <Link to="/wallet" className="wallet-badge">
                 <span className="wallet-icon">💰</span>
                 <span className="wallet-balance">${parseFloat(wallet?.balance || 0).toFixed(2)}</span>
+                {(wallet?.coins || 0) > 0 && (
+                  <span className="wallet-coins">🪙 {(wallet.coins).toLocaleString()}</span>
+                )}
               </Link>
               <span className="nav-username">{user.username}</span>
               <button className="btn btn-ghost btn-sm" onClick={handleLogout}>

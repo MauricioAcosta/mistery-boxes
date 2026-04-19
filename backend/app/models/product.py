@@ -14,6 +14,7 @@ class Product(db.Model):
     brand = db.Column(db.String(50))
     # common | uncommon | rare | epic | legendary
     rarity = db.Column(db.String(20), default='common')
+    client_id = db.Column(db.String(20), default='default')
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -27,4 +28,5 @@ class Product(db.Model):
             'category': self.category,
             'brand': self.brand,
             'rarity': self.rarity,
+            'client_id': self.client_id,
         }
