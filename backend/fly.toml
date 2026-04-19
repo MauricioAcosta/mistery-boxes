@@ -1,0 +1,43 @@
+# fly.toml — MysteryBoxes Backend
+# Docs: https://fly.io/docs/reference/configuration/
+#
+# Antes de hacer "fly deploy":
+#   1. Cambia app = "mistery-boxes-backend" por el nombre que elijas
+#   2. Corre: fly secrets set DATABASE_URL="..." SECRET_KEY="..." JWT_SECRET_KEY="..."
+
+app = "mistery-boxes-backend"
+primary_region = "mia"          # Miami — el más cercano a Colombia
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  FLASK_ENV = "production"
+  PORT      = "5000"
+
+# ── HTTP service ─────────────────────────────────────────────────────────────
+[http_service]
+  internal_port       = 5000
+  force_https         = true
+  auto_stop_machines  = false   # NUNCA duerme (tier gratuito lo permite con 1 máquina)
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+# ── VM (free tier: 1 shared CPU, 256 MB RAM) ─────────────────────────────────
+[[vm]]
+  cpu_kind = "shared"
+  cpus     = 1
+  memory   = "256mb"
+
+# ── Health check ─────────────────────────────────────────────────────────────
+[[http_service.checks]]
+  grace_period = "10s"
+  interval     = "30s"
+  method       = "GET"
+  path         = "/api/boxes"
+  timeout      = "5s"

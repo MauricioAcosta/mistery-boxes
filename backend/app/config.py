@@ -4,10 +4,10 @@ from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-in-prod')
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL',
-        'postgresql://mbuser:changeme_in_production@db:5432/mysteryboxes'
-    )
+
+    # Neon y Railway devuelven "postgres://" — SQLAlchemy 2.x requiere "postgresql://"
+    _db_url = os.getenv('DATABASE_URL', 'postgresql://mbuser:changeme_in_production@db:5432/mysteryboxes')
+    SQLALCHEMY_DATABASE_URI = _db_url.replace('postgres://', 'postgresql://', 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-prod')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)

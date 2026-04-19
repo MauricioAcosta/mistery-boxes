@@ -1,7 +1,11 @@
 import axios from 'axios'
 
+// En desarrollo: VITE_API_BASE_URL no está definida → usa ruta relativa '/api'
+// En producción (Vercel): VITE_API_BASE_URL = 'https://mistery-boxes-backend.fly.dev'
+const BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/api'
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE,
   headers: { 'Content-Type': 'application/json' },
 })
 

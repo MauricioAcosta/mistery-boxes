@@ -2,14 +2,23 @@
 set -e
 
 echo "[entrypoint] Waiting for database..."
+
+# Neon y otros proveedores cloud usan postgres:// o postgresql://
+# y pueden incluir ?sslmode=require al final.
 until python -c "
 import os, psycopg2
 url = os.environ['DATABASE_URL']
-# parse: postgresql://user:pass@host:port/db
+# Normaliza postgres:// → postgresql:// (psycopg2 acepta ambas pero por si acaso)
+url = url.replace('postgres://', 'postgresql://', 1)
+# Separa la query string antes de parsear
+base = url.split('?')[0]
 import re
-m = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', url)
-conn = psycopg2.connect(host=m.group(3), port=int(m.group(4)),
-    user=m.group(1), password=m.group(2), dbname=m.group(5))
+m = re.match(r'postgresql://([^:]+):([^@]+)@([^:/]+):?(\d*)/(.+)', base)
+if not m:
+    raise ValueError(f'Cannot parse DATABASE_URL: {base}')
+port = int(m.group(4)) if m.group(4) else 5432
+# Pasa la URL completa para respetar sslmode y otros params
+conn = psycopg2.connect(url)
 conn.close()
 " 2>/dev/null; do
   echo "[entrypoint] DB not ready, retrying in 2s..."
@@ -33,4 +42,10 @@ print("[entrypoint] Schema ready.")
 PYEOF
 
 echo "[entrypoint] Starting gunicorn..."
-exec gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 run:app
+# 2 workers para caber en 256 MB de RAM del free tier de Fly.io
+exec gunicorn \
+  --bind 0.0.0.0:5000 \
+  --workers 2 \
+  --timeout 120 \
+  --access-logfile - \
+  run:app
