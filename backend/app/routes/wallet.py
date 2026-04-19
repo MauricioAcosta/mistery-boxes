@@ -25,7 +25,7 @@ def get_wallet():
 def deposit():
     """Simulated deposit — wire up a real payment gateway in production."""
     user_id = int(get_jwt_identity())
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     amount = data.get('amount')
 
     if amount is None:

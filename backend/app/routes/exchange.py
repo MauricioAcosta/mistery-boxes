@@ -14,7 +14,7 @@ EXCHANGE_COMMISSION = 0.10  # 10 % house commission on exchange
 def exchange_prize():
     """Convert a pending prize into wallet credits (minus commission)."""
     user_id = int(get_jwt_identity())
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if 'opening_id' not in data:
         return jsonify({'error': 'opening_id is required'}), 400
 
@@ -55,7 +55,7 @@ def exchange_prize():
 def request_shipment():
     """Request physical shipment (dropshipping trigger in production)."""
     user_id = int(get_jwt_identity())
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
 
     required_fields = ['opening_id', 'full_name', 'address', 'city', 'country', 'postal_code']
     missing = [f for f in required_fields if f not in data]

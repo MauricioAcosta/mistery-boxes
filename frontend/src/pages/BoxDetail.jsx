@@ -3,13 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n/index'
-import BoxOpenAnimation from '../components/BoxOpenAnimation'
+import BoxOpenScene from '../components/BoxOpenScene'
 import PrizeModal from '../components/PrizeModal'
-
-const RARITY_COLORS = {
-  common: '#6b7280', uncommon: '#22c55e',
-  rare: '#3b82f6', epic: '#a855f7', legendary: '#f59e0b',
-}
 
 export default function BoxDetail() {
   const { id } = useParams()
@@ -17,32 +12,31 @@ export default function BoxDetail() {
   const { t } = useI18n()
   const navigate = useNavigate()
 
-  const [box, setBox] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [opening, setOpening] = useState(false)
-  const [animData, setAnimData] = useState(null)
-  const [animDone, setAnimDone] = useState(false)
-  const [currentOpening, setCurrentOpening] = useState(null)
-  const [error, setError] = useState('')
+  const [box, setBox]                     = useState(null)
+  const [loading, setLoading]             = useState(true)
+  const [opening, setOpening]             = useState(false)   // API in-flight
+  const [animData, setAnimData]           = useState(null)    // drives BoxOpenScene
+  const [currentOpening, setCurrentOpening] = useState(null) // drives PrizeModal
+  const [error, setError]                 = useState('')
 
   useEffect(() => {
     api.get(`/boxes/${id}`)
       .then(res => setBox(res.data))
       .catch(() => setError(t('boxDetail.notFound')))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id])   // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* Open box ─────────────────────────────────────────────── */
   const handleOpen = async () => {
-    if (!user) { navigate('/login'); return }
+    if (!user)          { navigate('/login'); return }
     if (opening || animData) return
 
     setError('')
     setOpening(true)
     try {
-      const res = await api.post(`/boxes/${id}/open`)
+      const res  = await api.post(`/boxes/${id}/open`)
       const data = res.data
       setAnimData({ items: box.items, winnerId: data.won.id, response: data })
-      setAnimDone(false)
       refreshWallet()
     } catch (e) {
       setError(e.response?.data?.error || t('boxDetail.failedOpen'))
@@ -51,28 +45,30 @@ export default function BoxDetail() {
     }
   }
 
+  /* BoxOpenScene calls this when the REVEALING phase ends ─── */
   const handleAnimFinish = () => {
-    setAnimDone(true)
-    setTimeout(() => setCurrentOpening(animData.response), 800)
+    // Small extra delay for dramatic pause before the modal
+    setTimeout(() => setCurrentOpening(animData.response), 200)
   }
 
   const handleModalClose = () => {
     setCurrentOpening(null)
     setAnimData(null)
-    setAnimDone(false)
   }
 
-  if (loading) return <div className="loading-screen"><div className="spinner" /></div>
-  if (!box) return <div className="page"><div className="empty-state">{t('boxDetail.notFound')}</div></div>
+  /* Guards ──────────────────────────────────────────────────── */
+  if (loading)
+    return <div className="loading-screen"><div className="spinner" /></div>
+  if (!box)
+    return <div className="page"><div className="empty-state">{t('boxDetail.notFound')}</div></div>
 
-  const balance = parseFloat(wallet?.balance || 0)
+  const balance   = parseFloat(wallet?.balance || 0)
   const canAfford = balance >= box.price
-  const totalWeight = (box.items || []).reduce((s, i) => s + i.weight, 0)
 
   const openBtnLabel = () => {
-    if (opening) return t('boxDetail.rolling')
-    if (!user) return t('boxDetail.loginToOpen')
-    if (!canAfford) return `${t('boxDetail.openBox')} — necesitas $${(box.price - balance).toFixed(2)} más`
+    if (opening)   return t('boxDetail.rolling')
+    if (!user)     return t('boxDetail.loginToOpen')
+    if (!canAfford) return t('boxDetail.needMore', { amount: (box.price - balance).toFixed(2) })
     return `${t('boxDetail.openBox')} — $${box.price.toFixed(2)}`
   }
 
@@ -80,7 +76,7 @@ export default function BoxDetail() {
     <div className="page">
       <div className="box-detail">
 
-        {/* Left: info */}
+        {/* ── Left: info + stats + CTA ─────────────────────── */}
         <div className="box-detail-info">
           <img src={box.image_url} alt={box.name} className="box-detail-img" />
           <h1 className="box-detail-name">{box.name}</h1>
@@ -107,6 +103,7 @@ export default function BoxDetail() {
 
           {error && <div className="alert alert-error">{error}</div>}
 
+          {/* Show CTA only while not animating */}
           {!animData && (
             <button
               className="btn btn-primary btn-open"
@@ -117,52 +114,28 @@ export default function BoxDetail() {
             </button>
           )}
 
-          {user && !canAfford && (
-            <button className="btn btn-outline btn-sm" onClick={() => navigate('/wallet')}>
+          {user && !canAfford && !animData && (
+            <button
+              className="btn btn-outline btn-sm"
+              style={{ marginTop: '0.5rem' }}
+              onClick={() => navigate('/wallet')}
+            >
               {t('boxDetail.topUpWallet')}
             </button>
           )}
         </div>
 
-        {/* Right: reel + items list */}
+        {/* ── Right: BoxOpenScene (idle items grid → animation) */}
         <div className="box-detail-right">
-          {animData ? (
-            <BoxOpenAnimation
-              items={animData.items}
-              winnerId={animData.winnerId}
-              onFinish={handleAnimFinish}
-            />
-          ) : (
-            <div className="items-list">
-              <h3 className="items-list-title">{t('boxDetail.possibleItems')}</h3>
-              <div className="items-table">
-                {[...(box.items || [])].sort((a, b) => b.product.retail_value - a.product.retail_value)
-                  .map(item => (
-                    <div key={item.id} className="item-row">
-                      <img src={item.product.image_url} alt={item.product.name} className="item-row-img" />
-                      <div className="item-row-info">
-                        <span className="item-row-name">{item.product.name}</span>
-                        <span
-                          className="item-row-rarity"
-                          style={{ color: RARITY_COLORS[item.product.rarity] }}
-                        >
-                          {t(`rarity.${item.product.rarity}`)}
-                        </span>
-                      </div>
-                      <div className="item-row-right">
-                        <span className="item-row-value">${item.product.retail_value.toFixed(2)}</span>
-                        <span className="item-row-prob">
-                          {totalWeight > 0 ? (item.weight / totalWeight * 100).toFixed(2) : 0}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
+          <BoxOpenScene
+            box={box}
+            animData={animData}
+            onFinish={handleAnimFinish}
+          />
         </div>
       </div>
 
+      {/* Prize modal — shown after animation completes ──────── */}
       {currentOpening && (
         <PrizeModal opening={currentOpening} onClose={handleModalClose} />
       )}

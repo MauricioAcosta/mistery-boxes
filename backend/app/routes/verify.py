@@ -13,7 +13,7 @@ def verify():
     Accepts: server_seed, client_seed, nonce, box_id
     Returns: recomputed result + the item it maps to.
     """
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     required = ['server_seed', 'client_seed', 'nonce', 'box_id']
     missing = [k for k in required if k not in data]
     if missing:

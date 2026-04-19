@@ -94,9 +94,7 @@ export default function History() {
                 {t('history.prev')}
               </button>
               <span className="pagination-info">
-                {t('history.totalOpens').includes('Total')
-                  ? `Page ${page} of ${totalPages}`
-                  : `Página ${page} de ${totalPages}`}
+                {t('history.pageOf', { page, total: totalPages })}
               </span>
               <button
                 className="btn btn-outline btn-sm"

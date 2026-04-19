@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
+import { useI18n } from '../i18n/index'
 
 const CARD_WIDTH = 176   // px  (160 content + 16 gap)
 const REEL_SIZE = 60     // total items in reel
-const WINNER_IDX = 44    // winner lands at this position (leaves 15 visible after center)
+const WINNER_IDX = 44    // winner lands at this position
 const ANIM_DURATION = 5500  // ms
 
 const RARITY_GLOW = {
@@ -27,6 +28,7 @@ function buildReel(items, winnerId) {
 }
 
 export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
+  const { t } = useI18n()
   const trackRef = useRef(null)
   const [reel] = useState(() => buildReel(items, winnerId))
   const [spinning, setSpinning] = useState(false)
@@ -35,7 +37,6 @@ export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
   useEffect(() => {
     if (!trackRef.current || !reel.length) return
 
-    // Force a reflow before animating so the initial position is applied
     trackRef.current.style.transition = 'none'
     trackRef.current.style.transform = 'translateX(0)'
     // eslint-disable-next-line no-unused-expressions
@@ -43,7 +44,6 @@ export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
 
     const containerWidth = trackRef.current.parentElement.offsetWidth
     const centerOffset = containerWidth / 2 - CARD_WIDTH / 2
-    // Random ±30 px offset so the reel never lands perfectly centred — looks natural
     const jitter = (Math.random() - 0.5) * 60
     const targetX = -(WINNER_IDX * CARD_WIDTH - centerOffset + jitter)
 
@@ -67,7 +67,6 @@ export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
 
   return (
     <div className={`reel-wrapper ${done ? 'reel-done' : ''}`}>
-      {/* Centre marker */}
       <div
         className="reel-marker"
         style={{ '--glow': RARITY_GLOW[rarity] }}
@@ -93,7 +92,7 @@ export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
                   className="rarity-badge"
                   style={{ color: RARITY_GLOW[item?.product?.rarity || 'common'] }}
                 >
-                  {item?.product?.rarity}
+                  {t(`rarity.${item?.product?.rarity || 'common'}`)}
                 </span>
                 <span className="reel-card-name">{item?.product?.name}</span>
                 <span className="reel-card-value">${item?.product?.retail_value?.toFixed(2)}</span>
@@ -104,7 +103,7 @@ export default function BoxOpenAnimation({ items, winnerId, onFinish }) {
       </div>
 
       {spinning && (
-        <div className="reel-overlay-text">Rolling…</div>
+        <div className="reel-overlay-text">{t('animation.rolling')}</div>
       )}
     </div>
   )

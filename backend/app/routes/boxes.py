@@ -30,7 +30,7 @@ def get_box(box_id):
 def open_box(box_id):
     user_id = int(get_jwt_identity())
     box = Box.query.filter_by(id=box_id, is_active=True).first_or_404()
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
 
     wallet = WalletService.get_wallet(user_id)
     if not wallet or float(wallet.balance) < float(box.price):

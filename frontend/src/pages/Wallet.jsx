@@ -35,7 +35,7 @@ export default function Wallet() {
       await refreshWallet()
       const res = await api.get('/wallet')
       setTransactions(res.data.transactions)
-      setMessage(`$${amount.toFixed(2)} ${t('wallet.deposit') === 'Deposit' ? 'added successfully!' : 'añadido exitosamente!'}`)
+      setMessage(t('wallet.addedSuccess', { amount: amount.toFixed(2) }))
       setDepositAmount('')
     } catch (e) {
       setError(e.response?.data?.error || t('wallet.depositFailed'))

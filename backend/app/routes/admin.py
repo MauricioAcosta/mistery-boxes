@@ -27,7 +27,7 @@ def list_products():
 @bp.route('/products', methods=['POST'])
 @admin_required
 def create_product():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['name', 'retail_value']):
         return jsonify({'error': 'name and retail_value are required'}), 400
     product = Product(
@@ -53,7 +53,7 @@ def list_boxes():
 @bp.route('/boxes', methods=['POST'])
 @admin_required
 def create_box():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['name', 'price']):
         return jsonify({'error': 'name and price are required'}), 400
 

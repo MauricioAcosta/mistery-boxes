@@ -9,7 +9,7 @@ bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 @bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     required = ['username', 'email', 'password']
     if not all(k in data for k in required):
         return jsonify({'error': 'username, email and password are required'}), 400
@@ -37,7 +37,7 @@ def register():
 
 @bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['email', 'password']):
         return jsonify({'error': 'email and password are required'}), 400
 
@@ -72,7 +72,7 @@ def me():
 def rotate_seed():
     """Let the user rotate their seed pair at will."""
     user_id = int(get_jwt_identity())
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     result = ProvablyFairService.rotate_seed(user_id, data.get('new_client_seed'))
     db.session.commit()
     return jsonify(result)
