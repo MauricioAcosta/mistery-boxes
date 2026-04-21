@@ -9,8 +9,8 @@ const RARITY_COLORS = {
   rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24',
 }
 
-const SELL_RATE     = 0.85
-const SHIPPING_COST = 20.00
+const EXCHANGE_RATE  = 0.70
+const SHIPPING_COST  = 20.00
 
 export default function PrizeModal({ opening, onClose }) {
   const { refreshWallet } = useAuth()
@@ -26,19 +26,19 @@ export default function PrizeModal({ opening, onClose }) {
 
   if (!opening) return null
   const { won, opening_id, proof } = opening
-  const rarity      = won.rarity || 'common'
-  const rarityColor = RARITY_COLORS[rarity]
-  const sellAmt     = (won.retail_value * SELL_RATE).toFixed(2)
+  const rarity       = won.rarity || 'common'
+  const rarityColor  = RARITY_COLORS[rarity]
+  const exchangeAmt  = (won.retail_value * EXCHANGE_RATE).toFixed(2)
 
   /* ── handlers ──────────────────────────────────────────── */
-  const handleSell = async () => {
+  const handleExchange = async () => {
     setLoading(true); setErr('')
     try {
-      const res = await api.post('/sell', { opening_id })
-      setResult({ type: 'sell', amount: res.data.sell_amount })
+      const res = await api.post('/exchange', { opening_id })
+      setResult({ type: 'exchange', amount: res.data.exchange_amount })
       refreshWallet()
     } catch (e) {
-      setErr(e.response?.data?.error || t('prize.sellFailed'))
+      setErr(e.response?.data?.error || t('prize.exchangeFailed'))
     } finally { setLoading(false) }
   }
 
@@ -63,12 +63,12 @@ export default function PrizeModal({ opening, onClose }) {
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal prize-modal" onClick={e => e.stopPropagation()}>
           <div className="prize-result">
-            {result.type === 'sell' && (
+            {result.type === 'exchange' && (
               <>
-                <div className="result-icon">🪙</div>
-                <h2>{t('prize.sellSuccess')}</h2>
+                <div className="result-icon">💰</div>
+                <h2>{t('prize.exchangeSuccess')}</h2>
                 <p className="prize-result-amount">+${result.amount.toFixed(2)}</p>
-                <p className="muted">{t('prize.sellDesc', { amount: result.amount.toFixed(2) })}</p>
+                <p className="muted">{t('prize.walletCredited')}</p>
               </>
             )}
             {result.type === 'ship' && (
@@ -149,26 +149,25 @@ export default function PrizeModal({ opening, onClose }) {
 
         {err && <p className="error-msg">{err}</p>}
 
-        {/* 2 options */}
         <div className="prize-options">
 
-          {/* Option 1 — Cambiar por Créditos (highlighted) */}
-          <div className="prize-option prize-option-sell" onClick={!loading ? handleSell : undefined}>
-            <span className="prize-option-badge">{t('prize.sellOptionBadge')}</span>
+          {/* Opción 1 — Canjear por créditos */}
+          <div className="prize-option prize-option-sell" onClick={!loading ? handleExchange : undefined}>
+            <span className="prize-option-badge">{t('prize.exchangeOptionBadge')}</span>
             <div className="prize-option-header">
-              <span className="prize-option-title">{t('prize.sellOptionTitle')}</span>
-              <span className="prize-option-amount sell-amount">+${sellAmt}</span>
+              <span className="prize-option-title">{t('prize.exchangeOptionTitle')}</span>
+              <span className="prize-option-amount sell-amount">+${exchangeAmt}</span>
             </div>
             <p className="prize-option-desc">
-              {t('prize.sellOptionDesc')}
-              <em> · {Math.round(SELL_RATE * 100)}% {t('prize.retailValue').replace(':', '')}</em>
+              {t('prize.exchangeOptionDesc')}
+              <em> · {Math.round(EXCHANGE_RATE * 100)}% {t('prize.retailValue').replace(':', '')}</em>
             </p>
             <button className="btn btn-accent prize-option-btn" disabled={loading}>
-              {loading ? t('prize.processing') : t('prize.sellBtn', { amount: sellAmt })}
+              {loading ? t('prize.processing') : t('prize.exchangeBtn', { amount: exchangeAmt })}
             </button>
           </div>
 
-          {/* Option 2 — Envío físico */}
+          {/* Opción 2 — Envío físico */}
           <div className="prize-option" onClick={!loading ? () => setShowShip(true) : undefined}>
             <div className="prize-option-header">
               <span className="prize-option-title">{t('prize.shipOptionTitle')}</span>

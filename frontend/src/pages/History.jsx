@@ -9,24 +9,23 @@ const RARITY_COLORS = {
 }
 
 const STATUS_CLASS = {
-  pending: 'status-pending',
+  pending:   'status-pending',
   exchanged: 'status-exchanged',
-  shipped: 'status-shipped',
-  sold: 'status-sold',
+  shipped:   'status-shipped',
 }
 
 const EMPTY_ADDR = { full_name: '', address: '', city: '', country: '', postal_code: '' }
 
 export default function History() {
   const { t } = useI18n()
-  const [openings, setOpenings]     = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [page, setPage]             = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal]           = useState(0)
+  const [openings, setOpenings]         = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [page, setPage]                 = useState(1)
+  const [totalPages, setTotalPages]     = useState(1)
+  const [total, setTotal]               = useState(0)
   const [statusFilter, setStatusFilter] = useState('')
-  const [error, setError]           = useState('')
-  const [actionMsg, setActionMsg]   = useState('')
+  const [error, setError]               = useState('')
+  const [actionMsg, setActionMsg]       = useState('')
 
   const load = useCallback((p = 1, st = statusFilter) => {
     setLoading(true)
@@ -45,10 +44,7 @@ export default function History() {
 
   useEffect(() => { load(page, statusFilter) }, [page, statusFilter])
 
-  const handleFilter = (st) => {
-    setStatusFilter(st)
-    setPage(1)
-  }
+  const handleFilter = (st) => { setStatusFilter(st); setPage(1) }
 
   const onAction = (msg) => {
     setActionMsg(msg)
@@ -56,16 +52,16 @@ export default function History() {
     load(page, statusFilter)
   }
 
-  const totalSpent    = openings.reduce((s, o) => s + o.amount_paid, 0)
-  const totalExchanged = openings.filter(o => ['exchanged','sold'].includes(o.status))
+  const totalSpent     = openings.reduce((s, o) => s + o.amount_paid, 0)
+  const totalExchanged = openings
+    .filter(o => o.status === 'exchanged')
     .reduce((s, o) => s + (o.exchange_amount || 0), 0)
-  const pendingCount  = openings.filter(o => o.status === 'pending').length
+  const pendingCount   = openings.filter(o => o.status === 'pending').length
 
   const filterTabs = [
     { key: '',          label: t('history.filterAll') },
     { key: 'pending',   label: t('history.filterPending') },
     { key: 'exchanged', label: t('history.filterExchanged') },
-    { key: 'sold',      label: t('history.filterSold') },
     { key: 'shipped',   label: t('history.filterShipped') },
   ]
 
@@ -73,7 +69,6 @@ export default function History() {
     <div className="page history-page">
       <h1 className="page-title">{t('history.title')}</h1>
 
-      {/* Summary stats */}
       <div className="history-stats">
         <div className="history-stat-card">
           <div className="history-stat-label">{t('history.totalOpens')}</div>
@@ -87,20 +82,18 @@ export default function History() {
           <div className="history-stat-label">{t('history.exchanged')}</div>
           <div className="history-stat-value" style={{ color: 'var(--green)' }}>${totalExchanged.toFixed(2)}</div>
         </div>
-        <div className="history-stat-card history-stat-card--pending" onClick={() => handleFilter('pending')} style={{ cursor: 'pointer' }}>
+        <div className="history-stat-card history-stat-card--pending"
+          onClick={() => handleFilter('pending')} style={{ cursor: 'pointer' }}>
           <div className="history-stat-label">{t('history.pending')}</div>
           <div className="history-stat-value" style={{ color: 'var(--gold)' }}>{pendingCount}</div>
         </div>
       </div>
 
-      {/* Filter tabs */}
       <div className="history-filter-tabs">
         {filterTabs.map(tab => (
-          <button
-            key={tab.key}
+          <button key={tab.key}
             className={`history-filter-tab${statusFilter === tab.key ? ' active' : ''}`}
-            onClick={() => handleFilter(tab.key)}
-          >
+            onClick={() => handleFilter(tab.key)}>
             {tab.label}
           </button>
         ))}
@@ -151,14 +144,16 @@ export default function History() {
 
 function OpeningCard({ opening, onAction }) {
   const { t } = useI18n()
-  const [busy, setBusy]           = useState(false)
-  const [showShip, setShowShip]   = useState(false)
-  const [addr, setAddr]           = useState(EMPTY_ADDR)
-  const [shipErr, setShipErr]     = useState('')
+  const [busy, setBusy]         = useState(false)
+  const [showShip, setShowShip] = useState(false)
+  const [addr, setAddr]         = useState(EMPTY_ADDR)
+  const [shipErr, setShipErr]   = useState('')
 
-  const product = opening.product
-  const rarity  = product?.rarity || 'common'
+  const product   = opening.product
+  const rarity    = product?.rarity || 'common'
   const isPending = opening.status === 'pending'
+  const retail    = product?.retail_value || 0
+  const exchAmt   = (retail * 0.70).toFixed(2)
 
   const handleExchange = async () => {
     setBusy(true)
@@ -182,13 +177,12 @@ function OpeningCard({ opening, onAction }) {
     } finally { setBusy(false) }
   }
 
-  const retail  = product?.retail_value || 0
-  const exchAmt = (retail * 0.70).toFixed(2)
-
   return (
     <>
       <div className={`opening-card${isPending ? ' opening-card--pending' : ''}`}>
-        <img src={product?.image_url} alt={product?.name} className="opening-product-img" />
+        <img src={product?.image_url || '/placeholder.svg'} alt={product?.name}
+          className="opening-product-img"
+          onError={e => { e.target.src = '/placeholder.svg' }} />
 
         <div className="opening-info">
           <div className="opening-product-name" style={{ color: RARITY_COLORS[rarity] }}>
@@ -205,7 +199,6 @@ function OpeningCard({ opening, onAction }) {
             </span>
           </div>
 
-          {/* Action buttons for pending items */}
           {isPending && (
             <div className="opening-actions">
               <button className="btn btn-sm btn-primary opening-action-btn"
@@ -235,7 +228,7 @@ function OpeningCard({ opening, onAction }) {
         <div className="opening-right">
           <span className="opening-value">${retail.toFixed(2)}</span>
           <span className="opening-paid">{t('history.paid')} ${opening.amount_paid.toFixed(2)}</span>
-          {['exchanged','sold'].includes(opening.status) && opening.exchange_amount && (
+          {opening.status === 'exchanged' && opening.exchange_amount && (
             <span style={{ fontSize: '0.78rem', color: 'var(--green)' }}>
               +${opening.exchange_amount.toFixed(2)} {t('history.credited')}
             </span>
@@ -243,7 +236,6 @@ function OpeningCard({ opening, onAction }) {
         </div>
       </div>
 
-      {/* Ship modal */}
       {showShip && (
         <div className="modal-overlay" onClick={() => setShowShip(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
