@@ -5,20 +5,19 @@ import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n/index'
 
 const RARITY_COLORS = {
-  common: '#94a3b8', uncommon: '#22c55e',
-  rare: '#3b82f6', epic: '#a855f7', legendary: '#f59e0b',
+  common: '#94a3b8', uncommon: '#34d399',
+  rare: '#60a5fa', epic: '#c084fc', legendary: '#fbbf24',
 }
 
-const EXCHANGE_RATE  = 0.70
-const SELL_RATE      = 0.85
-const SHIPPING_COST  = 5.00
+const SELL_RATE     = 0.85
+const SHIPPING_COST = 20.00
 
 export default function PrizeModal({ opening, onClose }) {
   const { refreshWallet } = useAuth()
   const { t } = useI18n()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [result, setResult]   = useState(null)
+  const [loading, setLoading]   = useState(false)
+  const [result, setResult]     = useState(null)
   const [showShip, setShowShip] = useState(false)
   const [shipForm, setShipForm] = useState({
     full_name: '', address: '', city: '', country: '', postal_code: '',
@@ -29,21 +28,9 @@ export default function PrizeModal({ opening, onClose }) {
   const { won, opening_id, proof } = opening
   const rarity      = won.rarity || 'common'
   const rarityColor = RARITY_COLORS[rarity]
-  const exchangeAmt = (won.retail_value * EXCHANGE_RATE).toFixed(2)
   const sellAmt     = (won.retail_value * SELL_RATE).toFixed(2)
 
   /* ── handlers ──────────────────────────────────────────── */
-  const handleExchange = async () => {
-    setLoading(true); setErr('')
-    try {
-      const res = await api.post('/exchange', { opening_id })
-      setResult({ type: 'exchange', amount: res.data.exchange_amount })
-      refreshWallet()
-    } catch (e) {
-      setErr(e.response?.data?.error || t('prize.exchangeFailed'))
-    } finally { setLoading(false) }
-  }
-
   const handleSell = async () => {
     setLoading(true); setErr('')
     try {
@@ -78,17 +65,10 @@ export default function PrizeModal({ opening, onClose }) {
           <div className="prize-result">
             {result.type === 'sell' && (
               <>
-                <div className="result-icon">🏪</div>
+                <div className="result-icon">🪙</div>
                 <h2>{t('prize.sellSuccess')}</h2>
                 <p className="prize-result-amount">+${result.amount.toFixed(2)}</p>
                 <p className="muted">{t('prize.sellDesc', { amount: result.amount.toFixed(2) })}</p>
-              </>
-            )}
-            {result.type === 'exchange' && (
-              <>
-                <div className="result-icon">💰</div>
-                <h2>+${result.amount.toFixed(2)} {t('prize.walletCredited')}</h2>
-                <p className="muted">{t('prize.exchangeOptionAmount', { amount: exchangeAmt, pct: Math.round(EXCHANGE_RATE * 100) })}</p>
               </>
             )}
             {result.type === 'ship' && (
@@ -151,7 +131,12 @@ export default function PrizeModal({ opening, onClose }) {
 
         {/* Product showcase */}
         <div className="prize-showcase" style={{ '--rarity': rarityColor }}>
-          <img src={won.image_url} alt={won.name} className="prize-img" />
+          <img
+            src={won.image_url}
+            alt={won.name}
+            className="prize-img"
+            onError={e => { e.target.src = '/placeholder.svg' }}
+          />
           <span className="prize-rarity-label" style={{ color: rarityColor }}>
             ★ {t(`rarity.${rarity}`).toUpperCase()}
           </span>
@@ -164,10 +149,10 @@ export default function PrizeModal({ opening, onClose }) {
 
         {err && <p className="error-msg">{err}</p>}
 
-        {/* 3 options */}
+        {/* 2 options */}
         <div className="prize-options">
 
-          {/* Option 2 — Sell (highlighted, best deal) */}
+          {/* Option 1 — Cambiar por Créditos (highlighted) */}
           <div className="prize-option prize-option-sell" onClick={!loading ? handleSell : undefined}>
             <span className="prize-option-badge">{t('prize.sellOptionBadge')}</span>
             <div className="prize-option-header">
@@ -183,7 +168,7 @@ export default function PrizeModal({ opening, onClose }) {
             </button>
           </div>
 
-          {/* Option 1 — Ship */}
+          {/* Option 2 — Envío físico */}
           <div className="prize-option" onClick={!loading ? () => setShowShip(true) : undefined}>
             <div className="prize-option-header">
               <span className="prize-option-title">{t('prize.shipOptionTitle')}</span>
@@ -192,21 +177,6 @@ export default function PrizeModal({ opening, onClose }) {
             <p className="prize-option-desc">{t('prize.shipOptionDesc')}</p>
             <button className="btn btn-outline prize-option-btn" disabled={loading}>
               {t('prize.shipBtn')}
-            </button>
-          </div>
-
-          {/* Option 3 — Exchange */}
-          <div className="prize-option" onClick={!loading ? handleExchange : undefined}>
-            <div className="prize-option-header">
-              <span className="prize-option-title">{t('prize.exchangeOptionTitle')}</span>
-              <span className="prize-option-amount">+${exchangeAmt}</span>
-            </div>
-            <p className="prize-option-desc">
-              {t('prize.exchangeOptionDesc')}
-              <em> · {Math.round(EXCHANGE_RATE * 100)}% {t('prize.retailValue').replace(':', '')}</em>
-            </p>
-            <button className="btn btn-ghost prize-option-btn" disabled={loading}>
-              {loading ? t('prize.processing') : t('prize.exchangeBtn', { amount: exchangeAmt })}
             </button>
           </div>
 

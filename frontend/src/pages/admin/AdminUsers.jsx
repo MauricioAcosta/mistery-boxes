@@ -37,7 +37,7 @@ export default function AdminUsers() {
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
-                <tr><th>ID</th><th>Username</th><th>Email</th><th>Rol</th><th>Proveedor</th><th>Registro</th></tr>
+                <tr><th>#</th><th>Usuario</th><th>Correo</th><th>Rol</th><th>Proveedor</th><th>Registro</th></tr>
               </thead>
               <tbody>
                 {data.users.map(u => (
@@ -54,9 +54,9 @@ export default function AdminUsers() {
             </table>
           </div>
           <div className="admin-pagination">
-            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Ant</button>
+            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>← Anterior</button>
             <span>Pág {page} / {data.pages}</span>
-            <button className="btn btn-ghost btn-sm" disabled={page >= data.pages} onClick={() => setPage(p => p + 1)}>Sig →</button>
+            <button className="btn btn-ghost btn-sm" disabled={page >= data.pages} onClick={() => setPage(p => p + 1)}>Siguiente →</button>
           </div>
         </>
       )}

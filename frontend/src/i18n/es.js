@@ -45,6 +45,8 @@ export const es = {
     possibleItems: 'Ítems Posibles',
     notFound: 'Caja no encontrada.',
     failedOpen: 'Error al abrir la caja',
+    noCoinsOption: 'Esta caja no acepta coins',
+    needMoreCoins: 'Te faltan {{amount}} coins',
   },
 
   auth: {
@@ -155,12 +157,12 @@ export const es = {
     shipOptionCost: 'Costo de envío: ${{cost}}',
     shipBtn: 'Solicitar Envío',
     // Opción 2 — Vender en plataforma (DESTACADA)
-    sellOptionTitle: '🏪 Vender en Plataforma',
-    sellOptionDesc: 'Vende tu premio de vuelta a la plataforma',
+    sellOptionTitle: '🪙 Cambiar por Créditos',
+    sellOptionDesc: 'Convierte tu premio en créditos de la plataforma',
     sellOptionAmount: 'Recibes ${{amount}} ({{pct}}% del valor)',
     sellOptionBadge: 'MEJOR OFERTA',
-    sellBtn: 'Vender — ${{amount}}',
-    sellSuccess: 'Vendido exitosamente',
+    sellBtn: 'Cambiar por Créditos — ${{amount}}',
+    sellSuccess: 'Cambiado exitosamente',
     sellDesc: '${{amount}} han sido acreditados a tu billetera.',
     // Opción 3 — Canjear por saldo
     exchangeOptionTitle: '💰 Canjear por Saldo',
@@ -195,11 +197,6 @@ export const es = {
     },
   },
 
-  boxDetail: {
-    noCoinsOption: 'Esta caja no acepta coins',
-    needMoreCoins: 'Te faltan {{amount}} coins',
-  },
-
   coins: {
     balance: '🪙 {{amount}} coins',
     buyTitle: 'Comprar Coins',
@@ -210,6 +207,11 @@ export const es = {
     buying: 'Procesando…',
     success: '¡Compraste {{coins}} coins!',
     failed: 'Error al comprar coins',
+  },
+
+  boxCard: {
+    hot: 'POPULAR',
+    openFor: 'Abrir por',
   },
 
   rarity: {

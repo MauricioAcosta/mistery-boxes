@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy.orm import subqueryload
 from ..extensions import db
 from ..models import Box, BoxOpening, PlatformConfig
+from ..models.box import BoxItem
 from ..services.probability_engine import ProbabilityEngine
 from ..services.provably_fair import ProvablyFairService
 from ..services.wallet_service import WalletService
@@ -18,13 +20,19 @@ def list_boxes():
         query = query.filter_by(category=category)
     if client_id and client_id != 'default':
         query = query.filter(Box.client_id.in_([client_id, 'default']))
-    boxes = query.order_by(Box.price.asc()).all()
+    # Eager-load items + products in 2 extra queries instead of N×2
+    boxes = query.options(
+        subqueryload(Box.items).subqueryload(BoxItem.product)
+    ).order_by(Box.price.asc()).all()
     return jsonify([b.to_dict() for b in boxes])
 
 
 @bp.route('/boxes/<int:box_id>', methods=['GET'])
 def get_box(box_id):
-    box = Box.query.filter_by(id=box_id, is_active=True).first_or_404()
+    box = (Box.query
+           .filter_by(id=box_id, is_active=True)
+           .options(subqueryload(Box.items).subqueryload(BoxItem.product))
+           .first_or_404())
     return jsonify(box.to_dict(include_items=True))
 
 
@@ -60,7 +68,7 @@ def open_box(box_id):
 
     result_float, nonce = ProvablyFairService.generate_result(seed_pair)
 
-    items = box.items.filter_by(is_active=True).all()
+    items = [i for i in box.items if i.is_active]
     if not items:
         return jsonify({'error': 'Box has no items configured'}), 500
 

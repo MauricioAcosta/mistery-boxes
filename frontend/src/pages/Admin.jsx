@@ -36,11 +36,11 @@ export default function Admin() {
         <div className="admin-sidebar-header">
           <span className="admin-sidebar-title">⚙️ Panel Admin</span>
           <span className="admin-role-badge">
-            {isSuperAdmin ? 'Super Admin' : `Admin · ${user?.provider_client_id}`}
+            {isSuperAdmin ? 'Super Admin' : `Admin · ${user?.provider_client_id ?? ''}`}
           </span>
         </div>
         <nav className="admin-nav">
-          {navItem('/admin', 'Dashboard', '📊')}
+          {navItem('/admin', 'Panel', '📊')}
           {navItem('/admin/products', 'Productos', '📦')}
           {navItem('/admin/boxes', 'Cajas', '🎁')}
           {navItem('/admin/boxes/new', 'Crear Caja', '➕')}

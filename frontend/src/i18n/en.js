@@ -45,6 +45,8 @@ export const en = {
     possibleItems: 'Possible Items',
     notFound: 'Box not found.',
     failedOpen: 'Failed to open box',
+    noCoinsOption: 'This box does not accept coins',
+    needMoreCoins: 'You need {{amount}} more coins',
   },
 
   auth: {
@@ -153,12 +155,12 @@ export const en = {
     shipOptionDesc: 'We ship the product to your door',
     shipOptionCost: 'Shipping cost: ${{cost}}',
     shipBtn: 'Request Shipment',
-    sellOptionTitle: '🏪 Sell on Platform',
-    sellOptionDesc: 'Sell your prize back to the platform',
+    sellOptionTitle: '🪙 Exchange for Credits',
+    sellOptionDesc: 'Convert your prize to platform credits',
     sellOptionAmount: 'You receive ${{amount}} ({{pct}}% of value)',
     sellOptionBadge: 'BEST OFFER',
-    sellBtn: 'Sell — ${{amount}}',
-    sellSuccess: 'Successfully sold',
+    sellBtn: 'Exchange for Credits — ${{amount}}',
+    sellSuccess: 'Successfully exchanged',
     sellDesc: '${{amount}} have been credited to your wallet.',
     exchangeOptionTitle: '💰 Exchange for Credit',
     exchangeOptionDesc: 'Convert your prize to wallet credit',
@@ -191,11 +193,6 @@ export const en = {
     },
   },
 
-  boxDetail: {
-    noCoinsOption: 'This box does not accept coins',
-    needMoreCoins: 'You need {{amount}} more coins',
-  },
-
   coins: {
     balance: '🪙 {{amount}} coins',
     buyTitle: 'Buy Coins',
@@ -206,6 +203,11 @@ export const en = {
     buying: 'Processing…',
     success: 'You bought {{coins}} coins!',
     failed: 'Failed to buy coins',
+  },
+
+  boxCard: {
+    hot: 'HOT',
+    openFor: 'Open for',
   },
 
   rarity: {

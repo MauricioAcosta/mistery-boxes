@@ -28,7 +28,7 @@ def verify():
     computed_hash = ProvablyFairService.hash_seed(server_seed)
 
     box = Box.query.filter_by(id=box_id, is_active=True).first_or_404()
-    items = box.items.filter_by(is_active=True).all()
+    items = [i for i in box.items if i.is_active]
     total_weight = sum(i.weight for i in items)
     winner = ProbabilityEngine.select_item(items, result_float)
 

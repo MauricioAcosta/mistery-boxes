@@ -17,12 +17,15 @@ class Box(db.Model):
     total_openings = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    items = db.relationship('BoxItem', backref='box', lazy='dynamic')
+    items = db.relationship('BoxItem', backref='box', lazy='select')
     openings = db.relationship('BoxOpening', backref='box', lazy='dynamic')
+
+    def _active_items(self):
+        return [i for i in self.items if i.is_active]
 
     @property
     def expected_value(self):
-        active_items = self.items.filter_by(is_active=True).all()
+        active_items = self._active_items()
         if not active_items:
             return 0.0
         total_weight = sum(i.weight for i in active_items)
@@ -58,7 +61,7 @@ class Box(db.Model):
             'created_at': self.created_at.isoformat(),
         }
         if include_items:
-            active_items = self.items.filter_by(is_active=True).all()
+            active_items = self._active_items()
             total_weight = sum(i.weight for i in active_items)
             data['items'] = [i.to_dict(total_weight) for i in active_items]
         return data
