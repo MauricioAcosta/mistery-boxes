@@ -142,9 +142,13 @@ def get_openings():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 20, type=int), 50)
 
+    status_filter = request.args.get('status', '').strip()
+    query = BoxOpening.query.filter_by(user_id=user_id)
+    if status_filter in ('pending', 'exchanged', 'shipped', 'sold'):
+        query = query.filter_by(status=status_filter)
+
     paginated = (
-        BoxOpening.query
-        .filter_by(user_id=user_id)
+        query
         .order_by(BoxOpening.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )

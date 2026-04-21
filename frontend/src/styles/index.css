@@ -1466,6 +1466,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
 .status-pending  { background: rgba(251,191,36,.12); color: var(--gold);  border: 1px solid rgba(251,191,36,.3); }
 .status-exchanged { background: rgba(52,211,153,.12); color: var(--green); border: 1px solid rgba(52,211,153,.3); }
 .status-shipped  { background: rgba(96,165,250,.12);  color: var(--blue);  border: 1px solid rgba(96,165,250,.3); }
+.status-sold     { background: rgba(168,85,247,.12);  color: #a855f7;      border: 1px solid rgba(168,85,247,.3); }
 
 .opening-date { font-size: 0.72rem; color: var(--text-muted); }
 
@@ -1487,6 +1488,116 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   margin-top: 0.5rem;
   font-size: 0.72rem;
 }
+
+/* History filter tabs */
+.history-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.history-filter-tab {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.history-filter-tab:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.history-filter-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Pending card highlight */
+.opening-card--pending {
+  border-left: 3px solid var(--gold);
+}
+
+/* Inline actions on pending items */
+.opening-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.65rem;
+}
+
+.opening-action-btn {
+  font-size: 0.75rem !important;
+  padding: 0.3rem 0.75rem !important;
+  height: auto !important;
+}
+
+.btn-success {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+  font-weight: 700;
+}
+.btn-success:hover:not(:disabled) {
+  background: #2ea87a;
+  border-color: #2ea87a;
+}
+
+/* Ship modal reuse .modal-box */
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+.ship-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.85rem;
+}
+
+.ship-form-row label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Stat card hover for pending shortcut */
+.history-stat-card--pending { transition: border-color var(--transition); }
+.history-stat-card--pending:hover { border-color: var(--gold); }
 
 .pagination {
   display: flex;
