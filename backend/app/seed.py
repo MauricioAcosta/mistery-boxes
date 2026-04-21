@@ -1,12 +1,21 @@
 """
 Demo seed data — products segmented by client_id + multi-provider boxes.
 
-House edge per box ≈ 28-32 % (RTP ≈ 70 %).
-Math check: EV = Σ(retail_value_i × weight_i / total_weight)
-            house_edge = 1 − EV / box_price
+House edge per box = 30 % (RTP = 70 %), enforced at selection time by
+ProbabilityEngine.select_item_with_margin (bisection on weight exponent k).
+
+Financial design rule:
+  Each box MUST include an anchor item whose retail_value < box_price × 0.70
+  (the target EV). Without it the bisection cannot reach the target and the
+  platform runs at a loss. The "Llavero Coleccionable" ($5) fills this role
+  for most boxes. Its weight is chosen so that at k=0.001 (bisection lower
+  bound), EV ≤ target_ev — computed as:
+      w_L ≥ (EV_num_others − target_ev × W_others) /
+             (target_ev × adj_L − value_L × adj_L)
+  where adj values are evaluated at k=0.001.
 """
 from .extensions import db
-from .models import Product, Box, BoxItem, User, Wallet
+from .models import Product, Box, BoxItem, User, Wallet, PlatformConfig
 from .services.provably_fair import ProvablyFairService
 
 
@@ -24,31 +33,31 @@ def seed_demo_data():
         Product(name="Xiaomi 14 Ultra", brand="Xiaomi", category="tech",
                 retail_value=1299.00, rarity="legendary", client_id="xiaomi",
                 description="Flagship con cámara Leica y Snapdragon 8 Gen 3.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-14-ultra.jpg"),
+                image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"),
         Product(name="Xiaomi 13T Pro", brand="Xiaomi", category="tech",
                 retail_value=699.00, rarity="epic", client_id="xiaomi",
                 description="Cámara Leica 50 MP, carga 120W.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-13t-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"),
         Product(name="Redmi Note 13 Pro+", brand="Xiaomi", category="tech",
                 retail_value=399.00, rarity="rare", client_id="xiaomi",
                 description="200 MP + carga 120W en gama media.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-note-13-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400"),
         Product(name="Xiaomi Buds 4 Pro", brand="Xiaomi", category="tech",
                 retail_value=149.00, rarity="uncommon", client_id="xiaomi",
                 description="ANC adaptativa, batería 38 h.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-buds-4-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1590658268037-c45c3c04a5e3?w=400"),
         Product(name="Xiaomi Smart Band 8 Pro", brand="Xiaomi", category="tech",
                 retail_value=79.00, rarity="uncommon", client_id="xiaomi",
                 description="AMOLED rectangular, GPS integrado.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-smart-band-8-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400"),
         Product(name="Redmi Pad SE", brand="Xiaomi", category="tech",
                 retail_value=199.00, rarity="rare", client_id="xiaomi",
                 description="Pantalla 11\" FHD+, batería 8000 mAh.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-redmi-pad-se.jpg"),
+                image_url="https://images.unsplash.com/photo-1561154464-02ce270d0a8a?w=400"),
         Product(name="Xiaomi Mi Watch S3", brand="Xiaomi", category="tech",
                 retail_value=119.00, rarity="uncommon", client_id="xiaomi",
                 description="AMOLED 1.43\", carga 5W, Hyper OS.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/xiaomi-watch-s3.jpg"),
+                image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"),
         Product(name="Cargador Xiaomi 120W", brand="Xiaomi", category="accessories",
                 retail_value=29.00, rarity="common", client_id="xiaomi",
                 description="Carga turbo compatible GaN.",
@@ -64,27 +73,27 @@ def seed_demo_data():
         Product(name="OPPO Find X7 Ultra", brand="OPPO", category="tech",
                 retail_value=1199.00, rarity="legendary", client_id="oppo",
                 description="Hasselblad quad-cam, Dimensity 9300.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-find-x7-ultra.jpg"),
+                image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"),
         Product(name="OPPO Reno 11 Pro", brand="OPPO", category="tech",
                 retail_value=549.00, rarity="epic", client_id="oppo",
                 description="Diseño curvo, cámara retrato 50 MP.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-reno11-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"),
         Product(name="OPPO A79 5G", brand="OPPO", category="tech",
                 retail_value=299.00, rarity="rare", client_id="oppo",
                 description="5G accesible, AMOLED 90 Hz.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-a79-5g.jpg"),
+                image_url="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400"),
         Product(name="OPPO Watch 4 Pro", brand="OPPO", category="tech",
                 retail_value=399.00, rarity="epic", client_id="oppo",
                 description="AMOLED cuadrado, ECG, carga 67W.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-watch-4-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400"),
         Product(name="OPPO Enco X3", brand="OPPO", category="tech",
                 retail_value=179.00, rarity="rare", client_id="oppo",
                 description="Co-tuneado con Dynaudio, ANC.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-enco-x3.jpg"),
+                image_url="https://images.unsplash.com/photo-1590658268037-c45c3c04a5e3?w=400"),
         Product(name="OPPO Pad 2", brand="OPPO", category="tech",
                 retail_value=449.00, rarity="epic", client_id="oppo",
                 description="MediaTek Dimensity 9000, 12\" OLED.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/oppo-pad-2.jpg"),
+                image_url="https://images.unsplash.com/photo-1561154464-02ce270d0a8a?w=400"),
         Product(name="Cargador OPPO SUPERVOOC 80W", brand="OPPO", category="accessories",
                 retail_value=35.00, rarity="common", client_id="oppo",
                 description="Carga ultrarrápida SUPERVOOC.",
@@ -100,27 +109,27 @@ def seed_demo_data():
         Product(name="Motorola Edge 50 Ultra", brand="Motorola", category="tech",
                 retail_value=999.00, rarity="legendary", client_id="motorola",
                 description="Snapdragon 8s Gen 3, cámara 50MP OIS.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-edge-50-ultra.jpg"),
+                image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"),
         Product(name="Motorola Edge 50 Pro", brand="Motorola", category="tech",
                 retail_value=649.00, rarity="epic", client_id="motorola",
                 description="pOLED 144 Hz, carga 125W TurboPower.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-edge-50-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400"),
         Product(name="Moto G84 5G", brand="Motorola", category="tech",
                 retail_value=299.00, rarity="rare", client_id="motorola",
                 description="pOLED 6.5\", 50 MP, Snapdragon 695.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-moto-g84.jpg"),
+                image_url="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400"),
         Product(name="Motorola Moto Buds+", brand="Motorola", category="tech",
                 retail_value=129.00, rarity="uncommon", client_id="motorola",
                 description="Diseñados con Bose, ANC híbrido.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-moto-buds.jpg"),
+                image_url="https://images.unsplash.com/photo-1590658268037-c45c3c04a5e3?w=400"),
         Product(name="Motorola Watch 70", brand="Motorola", category="tech",
                 retail_value=99.00, rarity="uncommon", client_id="motorola",
                 description="GPS integrado, 14 días batería.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-moto-watch-70.jpg"),
+                image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"),
         Product(name="Moto G14", brand="Motorola", category="tech",
                 retail_value=149.00, rarity="common", client_id="motorola",
                 description="Helio G85, 4 GB RAM, cámara 50 MP.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/motorola-moto-g14.jpg"),
+                image_url="https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400"),
         Product(name="Cargador TurboPower 30W Moto", brand="Motorola", category="accessories",
                 retail_value=25.00, rarity="common", client_id="motorola",
                 description="Carga rápida TurboPower original.",
@@ -132,31 +141,31 @@ def seed_demo_data():
         Product(name="Samsung Galaxy S24 Ultra", brand="Samsung", category="tech",
                 retail_value=1299.00, rarity="legendary", client_id="samsung",
                 description="S Pen, Snapdragon 8 Gen 3, zoom 200x.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra.jpg"),
+                image_url="https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400"),
         Product(name="Samsung Galaxy S24+", brand="Samsung", category="tech",
                 retail_value=999.00, rarity="epic", client_id="samsung",
                 description="Snapdragon 8 Gen 3, AMOLED 120 Hz.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24plus.jpg"),
+                image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"),
         Product(name="Samsung Galaxy A55 5G", brand="Samsung", category="tech",
                 retail_value=449.00, rarity="rare", client_id="samsung",
                 description="AMOLED 120 Hz, IP67, cámara 50 MP.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-a55.jpg"),
+                image_url="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400"),
         Product(name="Samsung Galaxy Watch 7", brand="Samsung", category="tech",
                 retail_value=299.00, rarity="epic", client_id="samsung",
                 description="Exynos W1000, BioActive Sensor Plus.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-watch7.jpg"),
+                image_url="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400"),
         Product(name="Samsung Galaxy Buds 3 Pro", brand="Samsung", category="tech",
                 retail_value=249.00, rarity="rare", client_id="samsung",
                 description="ANC inteligente, audio 360 Samsung.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-buds3-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1590658268037-c45c3c04a5e3?w=400"),
         Product(name="Samsung Galaxy Tab S9", brand="Samsung", category="tech",
                 retail_value=799.00, rarity="epic", client_id="samsung",
                 description="AMOLED 11\", S Pen incluido, IP68.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-tab-s9.jpg"),
+                image_url="https://images.unsplash.com/photo-1561154464-02ce270d0a8a?w=400"),
         Product(name="Samsung Galaxy A15", brand="Samsung", category="tech",
                 retail_value=199.00, rarity="uncommon", client_id="samsung",
                 description="AMOLED 90 Hz, 50 MP, 5000 mAh.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-a15.jpg"),
+                image_url="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400"),
         Product(name="Cargador Samsung 45W", brand="Samsung", category="accessories",
                 retail_value=39.00, rarity="common", client_id="samsung",
                 description="Super Fast Charging 2.0 original.",
@@ -172,23 +181,23 @@ def seed_demo_data():
         Product(name="Realme GT 6", brand="Realme", category="tech",
                 retail_value=699.00, rarity="legendary", client_id="realme",
                 description="Snapdragon 8s Gen 3, carga 120W.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/realme-gt-6.jpg"),
+                image_url="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400"),
         Product(name="Realme 12 Pro+", brand="Realme", category="tech",
                 retail_value=449.00, rarity="epic", client_id="realme",
                 description="Periscope 64 MP, diseño cuero.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/realme-12-pro-plus.jpg"),
+                image_url="https://images.unsplash.com/photo-1580910051074-3eb694886505?w=400"),
         Product(name="Realme C67 5G", brand="Realme", category="tech",
                 retail_value=249.00, rarity="rare", client_id="realme",
                 description="5G accesible, 108 MP, 5000 mAh.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/realme-c67-5g.jpg"),
+                image_url="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400"),
         Product(name="Realme Watch 3", brand="Realme", category="tech",
                 retail_value=79.00, rarity="uncommon", client_id="realme",
                 description="GPS, llamadas BT, 110 modos deporte.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/realme-watch-3.jpg"),
+                image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"),
         Product(name="Realme Buds Air 5 Pro", brand="Realme", category="tech",
                 retail_value=99.00, rarity="uncommon", client_id="realme",
                 description="ANC 50 dB, LDAC, 38 h batería.",
-                image_url="https://fdn2.gsmarena.com/vv/bigpic/realme-buds-air-5-pro.jpg"),
+                image_url="https://images.unsplash.com/photo-1590658268037-c45c3c04a5e3?w=400"),
         Product(name="Cargador Realme DART 65W", brand="Realme", category="accessories",
                 retail_value=22.00, rarity="common", client_id="realme",
                 description="Carga DART ultrarrápida original.",
@@ -268,6 +277,7 @@ def seed_demo_data():
         ("Xiaomi 14 Ultra", 1), ("Xiaomi 13T Pro", 3),
         ("Redmi Note 13 Pro+", 8), ("Xiaomi Buds 4 Pro", 20),
         ("Cargador Xiaomi 120W", 80), ("Funda Xiaomi Premium", 88),
+        ("Llavero Coleccionable", 3000),  # anchor: $5 < target_ev $7; w≥1988
     ])
 
     bx2 = Box(name="Caja Xiaomi Premium", price=30.00, category="tech",
@@ -279,6 +289,7 @@ def seed_demo_data():
         ("Xiaomi 14 Ultra", 1), ("Xiaomi 13T Pro", 4),
         ("Redmi Pad SE", 8), ("Xiaomi Mi Watch S3", 15),
         ("Xiaomi Smart Band 8 Pro", 25), ("Cargador Xiaomi 120W", 47),
+        ("Llavero Coleccionable", 300),  # anchor: $5 < target_ev $21; w≥168
     ])
 
     # ── Cajas OPPO ──────────────────────────────────────────────────────────
@@ -291,6 +302,7 @@ def seed_demo_data():
         ("OPPO Find X7 Ultra", 1), ("OPPO Reno 11 Pro", 4),
         ("OPPO Enco X3", 15), ("OPPO Watch 4 Pro", 10),
         ("Cargador OPPO SUPERVOOC 80W", 70), ("Funda OPPO Original", 100),
+        ("Llavero Coleccionable", 3000),  # anchor: $5 < target_ev $7; w≥2059
     ])
 
     bo2 = Box(name="OPPO Elite", price=50.00, category="tech",
@@ -302,6 +314,7 @@ def seed_demo_data():
         ("OPPO Find X7 Ultra", 1), ("OPPO Pad 2", 3),
         ("OPPO Reno 11 Pro", 6), ("OPPO Watch 4 Pro", 12),
         ("OPPO A79 5G", 20), ("Cargador OPPO SUPERVOOC 80W", 58),
+        ("Llavero Coleccionable", 150),  # anchor: $5 < target_ev $35; w≥56
     ])
 
     # ── Cajas Motorola ──────────────────────────────────────────────────────
@@ -314,6 +327,7 @@ def seed_demo_data():
         ("Motorola Edge 50 Ultra", 1), ("Moto G84 5G", 10),
         ("Motorola Moto Buds+", 18), ("Moto G14", 40),
         ("Cargador TurboPower 30W Moto", 86), ("Motorola Watch 70", 45),
+        ("Llavero Coleccionable", 3000),  # anchor: $5 < target_ev $5.60; w≥2200
     ])
 
     bm2 = Box(name="Moto Edge Premium", price=40.00, category="tech",
@@ -325,6 +339,7 @@ def seed_demo_data():
         ("Motorola Edge 50 Ultra", 1), ("Motorola Edge 50 Pro", 4),
         ("Moto G84 5G", 10), ("Motorola Moto Buds+", 18),
         ("Motorola Watch 70", 25), ("Cargador TurboPower 30W Moto", 42),
+        ("Llavero Coleccionable", 200),  # anchor: $5 < target_ev $28; w≥86
     ])
 
     # ── Cajas Samsung ───────────────────────────────────────────────────────
@@ -337,6 +352,7 @@ def seed_demo_data():
         ("Samsung Galaxy S24 Ultra", 1), ("Samsung Galaxy S24+", 3),
         ("Samsung Galaxy A55 5G", 10), ("Samsung Galaxy Buds 3 Pro", 18),
         ("Cargador Samsung 45W", 70), ("Funda Samsung Smart Clear", 98),
+        ("Llavero Coleccionable", 2500),  # anchor: $5 < target_ev $8.40; w≥1521
     ])
 
     bs2 = Box(name="Galaxy Box Ultra", price=60.00, category="tech",
@@ -348,6 +364,7 @@ def seed_demo_data():
         ("Samsung Galaxy S24 Ultra", 2), ("Samsung Galaxy Tab S9", 4),
         ("Samsung Galaxy Watch 7", 8), ("Samsung Galaxy Buds 3 Pro", 12),
         ("Samsung Galaxy A55 5G", 20), ("Cargador Samsung 45W", 54),
+        ("Llavero Coleccionable", 150),  # anchor: $5 < target_ev $42; w≥49
     ])
 
     # ── Cajas Realme ────────────────────────────────────────────────────────
@@ -360,6 +377,7 @@ def seed_demo_data():
         ("Realme GT 6", 1), ("Realme 12 Pro+", 5),
         ("Realme C67 5G", 12), ("Realme Buds Air 5 Pro", 25),
         ("Cargador Realme DART 65W", 80), ("Funda Realme Original", 77),
+        ("Llavero Coleccionable", 3000),  # anchor: $5 < target_ev $6.30; w≥2146
     ])
 
     # ── Cajas Default (multi-marca) ─────────────────────────────────────────
@@ -371,7 +389,7 @@ def seed_demo_data():
     _add_items(bd1, pm, [
         ("Sony WH-1000XM5", 2), ("Apple AirPods Pro 2nd Gen", 6),
         ("Keychron K2 Keyboard", 18), ("Adidas Sport Hoodie", 30),
-        ("Cable USB-C Braided 2m", 90), ("Llavero Coleccionable", 54),
+        ("Cable USB-C Braided 2m", 90), ("Llavero Coleccionable", 700),  # w≥608
     ])
 
     bd2 = Box(name="Gaming Paradise", price=25.00, category="gaming",
@@ -394,6 +412,11 @@ def seed_demo_data():
         ("Nike Air Max 90", 10), ("Adidas Sport Hoodie", 25),
         ("Keychron K2 Keyboard", 15), ("Llavero Coleccionable", 150),
     ])
+
+    # ── Platform config ─────────────────────────────────────────────────────
+    for key, value in [('house_edge_pct', '30'), ('margin_strength', '1.0')]:
+        if not PlatformConfig.query.filter_by(key=key).first():
+            db.session.add(PlatformConfig(key=key, value=value))
 
     # ── Super admin ─────────────────────────────────────────────────────────
     if not User.query.filter_by(email='admin@mysteryboxes.com').first():
