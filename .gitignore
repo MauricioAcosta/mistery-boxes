@@ -92,6 +92,8 @@ Thumbs.db
 
 # Claude Code
 .claude/
+.agents/
+skills-lock.json
 
 # ── Database ─────────────────────────────────────────────────
 *.sqlite3

@@ -160,15 +160,6 @@ function OpeningCard({ opening, onAction }) {
   const rarity  = product?.rarity || 'common'
   const isPending = opening.status === 'pending'
 
-  const handleSell = async () => {
-    setBusy(true)
-    try {
-      const r = await api.post('/sell', { opening_id: opening.id })
-      onAction(t('history.actionSellOk', { amount: r.data.sell_amount.toFixed(2) }))
-    } catch { onAction(t('history.actionFailed')) }
-    finally { setBusy(false) }
-  }
-
   const handleExchange = async () => {
     setBusy(true)
     try {
@@ -191,8 +182,7 @@ function OpeningCard({ opening, onAction }) {
     } finally { setBusy(false) }
   }
 
-  const retail = product?.retail_value || 0
-  const sellAmt = (retail * 0.85).toFixed(2)
+  const retail  = product?.retail_value || 0
   const exchAmt = (retail * 0.70).toFixed(2)
 
   return (
@@ -218,11 +208,7 @@ function OpeningCard({ opening, onAction }) {
           {/* Action buttons for pending items */}
           {isPending && (
             <div className="opening-actions">
-              <button className="btn btn-sm btn-success opening-action-btn"
-                disabled={busy} onClick={handleSell}>
-                🪙 {t('history.actionSell', { amount: sellAmt })}
-              </button>
-              <button className="btn btn-sm btn-outline opening-action-btn"
+              <button className="btn btn-sm btn-primary opening-action-btn"
                 disabled={busy} onClick={handleExchange}>
                 💰 {t('history.actionExchange', { amount: exchAmt })}
               </button>
