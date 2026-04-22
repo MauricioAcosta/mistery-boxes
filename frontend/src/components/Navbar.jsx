@@ -1,89 +1,133 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useI18n } from '../i18n/index'
 import { useTheme } from '../context/ThemeContext'
-import { CLIENT_IDS, themes } from '../themes/index'
-
-const IS_DEV = import.meta.env.DEV
 
 export default function Navbar() {
   const { user, wallet, logout } = useAuth()
-  const { t, lang, setLang } = useI18n()
-  const { theme, clientId, setClient } = useTheme()
+  const { theme } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
+  // Cierra el menú al cambiar de ruta
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+  // Bloquea scroll cuando el menú mobile está abierto
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
 
-  const toggleLang = () => setLang(lang === 'es' ? 'en' : 'es')
+  const handleLogout = () => { logout(); navigate('/') }
+
+  const navLinks = [
+    { to: '/',        label: 'Cajas' },
+    { to: '/verify',  label: 'Verificar' },
+    ...(user ? [{ to: '/history', label: 'Historial' }] : []),
+    ...(user && ['super_admin', 'admin_provider', 'admin'].includes(user.role)
+      ? [{ to: '/admin', label: '⚙️ Admin' }] : []),
+  ]
 
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <Link to="/" className="navbar-brand">
-          <span className="brand-icon">{theme.brandIcon}</span>
-          <span className="brand-name">{theme.brandName}</span>
-        </Link>
+    <>
+      <nav className="navbar">
+        <div className="navbar-inner">
+          <Link to="/" className="navbar-brand">
+            <span className="brand-icon">{theme.brandIcon}</span>
+            <span className="brand-name">{theme.brandName}</span>
+          </Link>
 
-        <div className="navbar-links">
-          <Link to="/" className="nav-link">{t('nav.boxes')}</Link>
-          <Link to="/verify" className="nav-link">{t('nav.verify')}</Link>
-          {user && <Link to="/history" className="nav-link">{t('nav.history')}</Link>}
-          {user && ['super_admin', 'admin_provider', 'admin'].includes(user.role) && (
-            <Link to="/admin" className="nav-link nav-link-admin">⚙️ Admin</Link>
-          )}
-        </div>
+          {/* Desktop links */}
+          <div className="navbar-links">
+            {navLinks.map(l => (
+              <NavLink key={l.to} to={l.to}
+                className={({ isActive }) => `nav-link${isActive ? ' nav-link-active' : ''}`}
+                end={l.to === '/'}>
+                {l.label}
+              </NavLink>
+            ))}
+          </div>
 
-        <div className="navbar-actions">
-          {/* Language toggle */}
+          {/* Desktop actions */}
+          <div className="navbar-actions">
+            {user ? (
+              <>
+                <Link to="/wallet" className="wallet-badge">
+                  <span className="wallet-icon">💰</span>
+                  <span className="wallet-balance">${parseFloat(wallet?.balance || 0).toFixed(2)}</span>
+                  {(wallet?.coins || 0) > 0 && (
+                    <span className="wallet-coins">🪙 {wallet.coins.toLocaleString()}</span>
+                  )}
+                </Link>
+                <span className="nav-username">{user.username}</span>
+                <button className="btn btn-ghost btn-sm" onClick={handleLogout}>Salir</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-ghost btn-sm">Ingresar</Link>
+                <Link to="/register" className="btn btn-primary btn-sm">Registrarse</Link>
+              </>
+            )}
+          </div>
+
+          {/* Hamburger */}
           <button
-            className="btn btn-ghost btn-sm lang-toggle"
-            onClick={toggleLang}
-            title={lang === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+            className={`nav-hamburger${menuOpen ? ' open' : ''}`}
+            onClick={() => setMenuOpen(v => !v)}
+            aria-label="Menú"
           >
-            {lang === 'es' ? '🇬🇧 EN' : '🇨🇴 ES'}
+            <span /><span /><span />
           </button>
-
-          {/* Client / theme switcher — visible in dev mode or when VITE_SHOW_THEME_SWITCHER=true */}
-          {(IS_DEV || import.meta.env.VITE_SHOW_THEME_SWITCHER === 'true') && (
-            <select
-              className="theme-select"
-              value={clientId}
-              onChange={e => setClient(e.target.value)}
-              title="Cambiar cliente / tema"
-            >
-              {CLIENT_IDS.map(id => (
-                <option key={id} value={id}>
-                  {themes[id].brandIcon} {themes[id].brandName}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {user ? (
-            <>
-              <Link to="/wallet" className="wallet-badge">
-                <span className="wallet-icon">💰</span>
-                <span className="wallet-balance">${parseFloat(wallet?.balance || 0).toFixed(2)}</span>
-                {(wallet?.coins || 0) > 0 && (
-                  <span className="wallet-coins">🪙 {(wallet.coins).toLocaleString()}</span>
-                )}
-              </Link>
-              <span className="nav-username">{user.username}</span>
-              <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
-                {t('nav.logout')}
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn btn-ghost btn-sm">{t('nav.login')}</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">{t('nav.signup')}</Link>
-            </>
-          )}
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile menu overlay */}
+      {menuOpen && (
+        <div className="nav-mobile-overlay" onClick={() => setMenuOpen(false)}>
+          <div className="nav-mobile-menu" onClick={e => e.stopPropagation()}>
+            <div className="nav-mobile-header">
+              <span className="brand-icon">{theme.brandIcon}</span>
+              <span className="brand-name" style={{ fontWeight: 700, fontSize: '1.1rem' }}>
+                {theme.brandName}
+              </span>
+              <button className="nav-mobile-close" onClick={() => setMenuOpen(false)}>✕</button>
+            </div>
+
+            {user && (
+              <div className="nav-mobile-user">
+                <span>👤 {user.username}</span>
+                <Link to="/wallet" className="wallet-badge" onClick={() => setMenuOpen(false)}>
+                  💰 ${parseFloat(wallet?.balance || 0).toFixed(2)}
+                </Link>
+              </div>
+            )}
+
+            <nav className="nav-mobile-links">
+              {navLinks.map(l => (
+                <NavLink key={l.to} to={l.to} className="nav-mobile-link"
+                  end={l.to === '/'} onClick={() => setMenuOpen(false)}>
+                  {l.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="nav-mobile-footer">
+              {user ? (
+                <button className="btn btn-outline" style={{ width: '100%' }} onClick={handleLogout}>
+                  Cerrar sesión
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <Link to="/login" className="btn btn-ghost" style={{ textAlign: 'center' }}
+                    onClick={() => setMenuOpen(false)}>Ingresar</Link>
+                  <Link to="/register" className="btn btn-primary" style={{ textAlign: 'center' }}
+                    onClick={() => setMenuOpen(false)}>Registrarse</Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
