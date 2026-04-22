@@ -1,9 +1,9 @@
 import secrets
+import resend
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from flask_mail import Message
-from ..extensions import db, mail
+from ..extensions import db
 from ..models import User, Wallet
 from ..services.provably_fair import ProvablyFairService
 
@@ -89,29 +89,30 @@ def forgot_password():
 
     reset_url = f"{current_app.config['FRONTEND_URL']}/reset-password?token={token}"
     try:
-        msg = Message(
-            subject='Restablece tu contraseña — Mystery Boxes',
-            recipients=[user.email],
-            html=f"""
-<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-  <h2 style="color:#f59e0b">🎁 Mystery Boxes</h2>
+        resend.api_key = current_app.config['RESEND_API_KEY']
+        resend.Emails.send({
+            'from': current_app.config['MAIL_FROM'],
+            'to': [user.email],
+            'subject': 'Restablece tu contraseña — Mystery Boxes',
+            'html': f"""
+<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f172a;color:#e2e8f0;border-radius:12px">
+  <h2 style="color:#f59e0b;margin-bottom:8px">🎁 Mystery Boxes</h2>
   <p>Hola <strong>{user.username}</strong>,</p>
   <p>Recibimos una solicitud para restablecer tu contraseña.
      El enlace es válido por <strong>1 hora</strong>.</p>
   <a href="{reset_url}"
-     style="display:inline-block;margin:20px 0;padding:12px 28px;
+     style="display:inline-block;margin:24px 0;padding:14px 32px;
             background:#f59e0b;color:#000;border-radius:8px;
-            text-decoration:none;font-weight:bold">
+            text-decoration:none;font-weight:bold;font-size:16px">
     Restablecer contraseña
   </a>
-  <p style="color:#888;font-size:13px">
-    Si no solicitaste esto, ignora este correo.
+  <p style="color:#94a3b8;font-size:13px;margin-top:16px">
+    Si no solicitaste esto, ignora este correo. Tu contraseña no cambiará.
   </p>
 </div>""",
-        )
-        mail.send(msg)
+        })
     except Exception as e:
-        current_app.logger.error(f'Mail error: {e}')
+        current_app.logger.error(f'Resend error: {e}')
         return jsonify({'error': 'No se pudo enviar el correo. Intenta más tarde.'}), 500
 
     return jsonify({'message': 'Si el correo existe, recibirás un enlace.'}), 200

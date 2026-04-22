@@ -1,6 +1,6 @@
 from flask import Flask
 from .config import config_map
-from .extensions import db, jwt, cors, migrate, mail
+from .extensions import db, jwt, cors, migrate
 
 
 def create_app(config_name='development'):
@@ -11,7 +11,6 @@ def create_app(config_name='development'):
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     migrate.init_app(app, db)
-    mail.init_app(app)
 
     from .routes import auth, boxes, wallet, exchange, verify, admin
     app.register_blueprint(auth.bp)

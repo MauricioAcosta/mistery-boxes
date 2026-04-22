@@ -12,15 +12,10 @@ class Config:
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-prod')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
-    # Flask-Mail (SMTP)
-    MAIL_SERVER   = os.getenv('MAIL_SERVER',   'smtp.gmail.com')
-    MAIL_PORT     = int(os.getenv('MAIL_PORT', '587'))
-    MAIL_USE_TLS  = os.getenv('MAIL_USE_TLS',  'true').lower() == 'true'
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME', '')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', os.getenv('MAIL_USERNAME', ''))
-
-    FRONTEND_URL  = os.getenv('FRONTEND_URL', 'https://frontend-eight-zeta-74.vercel.app')
+    # Resend (email transaccional)
+    RESEND_API_KEY   = os.getenv('RESEND_API_KEY', '')
+    MAIL_FROM        = os.getenv('MAIL_FROM', 'Mystery Boxes <noreply@mysteryboxes.com>')
+    FRONTEND_URL     = os.getenv('FRONTEND_URL', 'https://frontend-eight-zeta-74.vercel.app')
 
 
 class DevelopmentConfig(Config):

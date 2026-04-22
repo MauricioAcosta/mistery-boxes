@@ -44,7 +44,24 @@ postgresql://neondb_owner:npg_jo9SXzNky2PE@ep-nameless-dream-am07pzx6-pooler.c-5
 SECRET_KEY:     25374414f48cab46bece4baaae70d09f5675a260bfa023d1bddd6f407140ec66
 JWT_SECRET_KEY: 5d7bd1fb8a663124334b81eb6ab54d9409d8350eaed2527a62b88df42e94325d
 FLASK_ENV:      production
+RESEND_API_KEY: (ver sección Resend más abajo)
+MAIL_FROM:      Mystery Boxes <noreply@mysteryboxes.com>
+FRONTEND_URL:   https://frontend-eight-zeta-74.vercel.app
 ```
+
+### Resend — Email transaccional
+```
+Cuenta:   amacostapulido@gmail.com
+Plan:     Free (3 000 correos/mes, 100/día)
+Dashboard: https://resend.com/emails
+Dominio:  onboarding@resend.dev (sandbox — solo envía al correo del dueño de la cuenta)
+API Key:  re_xxxxxxxxxxxxxxxxxxxx  ← obtener en https://resend.com/api-keys
+```
+
+> **Nota sobre el dominio sandbox:** En el plan free de Resend, el sender debe ser
+> `onboarding@resend.dev` a menos que verifiques un dominio propio. Los correos
+> llegarán correctamente, pero el remitente visible será `onboarding@resend.dev`.
+> Para usar `noreply@mysteryboxes.com` se requiere verificar el dominio en Resend DNS.
 
 ### Cuentas de los servicios
 ```
