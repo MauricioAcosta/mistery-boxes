@@ -294,9 +294,9 @@ export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
             </div>
             {actionMsg && <p className="slot-msg">{actionMsg}</p>}
             {onPlayAgain && (
-              <button className="btn btn-ghost slot-play-again-btn" disabled={actionBusy}
+              <button className="btn btn-primary bd-open-btn slot-play-again-btn" disabled={actionBusy}
                 onClick={onPlayAgain}>
-                🎰 Abrir otra caja
+                🎰 ¡Abrir Otra! — ${box.price.toFixed(2)}
               </button>
             )}
           </div>
