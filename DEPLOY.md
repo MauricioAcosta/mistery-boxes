@@ -55,7 +55,7 @@ Cuenta:   amacostapulido@gmail.com
 Plan:     Free (3 000 correos/mes, 100/día)
 Dashboard: https://resend.com/emails
 Dominio:  onboarding@resend.dev (sandbox — solo envía al correo del dueño de la cuenta)
-API Key:  re_xxxxxxxxxxxxxxxxxxxx  ← obtener en https://resend.com/api-keys
+API Key:  re_Gqdamypp_74SDgbsWa8Rdmzg7rTWJgFo7
 ```
 
 > **Nota sobre el dominio sandbox:** En el plan free de Resend, el sender debe ser
