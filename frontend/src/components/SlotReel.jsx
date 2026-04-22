@@ -72,7 +72,7 @@ function buildReel(items, winnerId) {
 /* ═══════════════════════════════════════════════════════════════
    Componente principal
    ═══════════════════════════════════════════════════════════════ */
-export default function SlotReel({ box, opening, onClose }) {
+export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
   const { refreshWallet } = useAuth()
   const trackRef    = useRef(null)
   const viewRef     = useRef(null)
@@ -293,6 +293,12 @@ export default function SlotReel({ box, opening, onClose }) {
               </button>
             </div>
             {actionMsg && <p className="slot-msg">{actionMsg}</p>}
+            {onPlayAgain && (
+              <button className="btn btn-ghost slot-play-again-btn" disabled={actionBusy}
+                onClick={onPlayAgain}>
+                🎰 Abrir otra caja
+              </button>
+            )}
           </div>
         )}
 

@@ -46,6 +46,11 @@ export default function BoxDetail() {
 
   const handleClose = () => setOpenData(null)
 
+  const handlePlayAgain = () => {
+    setOpenData(null)
+    setTimeout(handleOpen, 80)
+  }
+
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>
   if (!box)   return <div className="page"><div className="empty-state">{error || 'Caja no encontrada.'}</div></div>
 
@@ -172,7 +177,7 @@ export default function BoxDetail() {
 
       {/* Overlay de apertura */}
       {openData && (
-        <SlotReel box={box} opening={openData} onClose={handleClose} />
+        <SlotReel box={box} opening={openData} onClose={handleClose} onPlayAgain={canAfford ? handlePlayAgain : undefined} />
       )}
     </>
   )
