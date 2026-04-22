@@ -8,6 +8,8 @@ import History from './pages/History'
 import Verify from './pages/Verify'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Admin from './pages/Admin'
 
 function ProtectedRoute({ children }) {
@@ -35,6 +37,8 @@ function AppRoutes() {
           <Route path="/verify" element={<Verify />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
           <Route path="/admin/*" element={<AdminRoute><Admin /></AdminRoute>} />

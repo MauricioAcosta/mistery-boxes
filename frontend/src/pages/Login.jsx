@@ -63,6 +63,9 @@ export default function Login() {
           </button>
         </form>
 
+        <p className="auth-footer auth-footer--center">
+          <Link to="/forgot-password" className="auth-forgot-link">¿Olvidaste tu contraseña?</Link>
+        </p>
         <p className="auth-footer">
           {t('auth.noAccount')} <Link to="/register">{t('auth.signUpLink')}</Link>
         </p>

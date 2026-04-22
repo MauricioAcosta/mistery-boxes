@@ -14,6 +14,8 @@ class User(db.Model):
     provider_client_id = db.Column(db.String(20), nullable=True)   # for admin_provider
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reset_token = db.Column(db.String(100), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
 
     wallet = db.relationship('Wallet', backref='user', uselist=False, cascade='all, delete-orphan')
     openings = db.relationship('BoxOpening', backref='user', lazy='dynamic')

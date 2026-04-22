@@ -1,6 +1,9 @@
-from flask import Blueprint, request, jsonify
+import secrets
+from datetime import datetime, timedelta
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from ..extensions import db
+from flask_mail import Message
+from ..extensions import db, mail
 from ..models import User, Wallet
 from ..services.provably_fair import ProvablyFairService
 
@@ -65,6 +68,76 @@ def me():
         'wallet': user.wallet.to_dict() if user.wallet else None,
         'active_seed': seed.to_dict() if seed else None,
     })
+
+
+@bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json(silent=True) or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return jsonify({'error': 'email es requerido'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    # Always return 200 to avoid user enumeration
+    if not user:
+        return jsonify({'message': 'Si el correo existe, recibirás un enlace.'}), 200
+
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+    db.session.commit()
+
+    reset_url = f"{current_app.config['FRONTEND_URL']}/reset-password?token={token}"
+    try:
+        msg = Message(
+            subject='Restablece tu contraseña — Mystery Boxes',
+            recipients=[user.email],
+            html=f"""
+<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+  <h2 style="color:#f59e0b">🎁 Mystery Boxes</h2>
+  <p>Hola <strong>{user.username}</strong>,</p>
+  <p>Recibimos una solicitud para restablecer tu contraseña.
+     El enlace es válido por <strong>1 hora</strong>.</p>
+  <a href="{reset_url}"
+     style="display:inline-block;margin:20px 0;padding:12px 28px;
+            background:#f59e0b;color:#000;border-radius:8px;
+            text-decoration:none;font-weight:bold">
+    Restablecer contraseña
+  </a>
+  <p style="color:#888;font-size:13px">
+    Si no solicitaste esto, ignora este correo.
+  </p>
+</div>""",
+        )
+        mail.send(msg)
+    except Exception as e:
+        current_app.logger.error(f'Mail error: {e}')
+        return jsonify({'error': 'No se pudo enviar el correo. Intenta más tarde.'}), 500
+
+    return jsonify({'message': 'Si el correo existe, recibirás un enlace.'}), 200
+
+
+@bp.route('/reset-password', methods=['POST'])
+def reset_password():
+    data = request.get_json(silent=True) or {}
+    token = (data.get('token') or '').strip()
+    new_password = data.get('password', '')
+
+    if not token or not new_password:
+        return jsonify({'error': 'token y password son requeridos'}), 400
+    if len(new_password) < 8:
+        return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
+
+    user = User.query.filter_by(reset_token=token).first()
+    if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
+        return jsonify({'error': 'El enlace no es válido o ha expirado'}), 400
+
+    user.set_password(new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.session.commit()
+
+    return jsonify({'message': 'Contraseña actualizada correctamente'}), 200
 
 
 @bp.route('/seed/rotate', methods=['POST'])
