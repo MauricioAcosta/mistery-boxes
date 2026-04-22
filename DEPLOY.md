@@ -172,11 +172,15 @@ primary_region = "dfw"   # Dallas — más cercano a Colombia
 
 **Desplegar:**
 ```bash
-cd frontend/
-npx vercel --yes --prod
+cd mistery-boxes/   # raíz del repo (NO entrar a frontend/)
+npx vercel --prod
 ```
 
 Vercel detecta automáticamente que es un proyecto Vite, instala dependencias, corre `npm run build` y publica el `dist/` en su CDN global.
+
+> **Nota:** El proyecto tiene `rootDirectory = frontend` configurado en Vercel.
+> El `.vercel/project.json` de la raíz está en `.gitignore`. Al clonar en una nueva máquina,
+> correr `npx vercel link` desde la raíz para regenerarlo antes del primer deploy manual.
 
 **Variable de entorno** apuntando al backend de Fly.io:
 ```bash
@@ -208,8 +212,8 @@ fly deploy
 
 ### Cambios en el frontend
 ```bash
-cd frontend/
-npx vercel --prod --yes
+cd mistery-boxes/   # raíz del repo (NO entrar a frontend/)
+npx vercel --prod
 ```
 
 ### Ver logs del backend en tiempo real
