@@ -31,9 +31,7 @@ export default function BoxDetail() {
       .finally(() => setLoading(false))
   }, [id])
 
-  const handleOpen = async () => {
-    if (!user) { navigate('/login'); return }
-    if (opening || openData) return
+  const doOpen = async () => {
     setError(''); setOpening(true)
     try {
       const r = await api.post(`/boxes/${id}/open`, { payment_method: payMethod })
@@ -44,11 +42,17 @@ export default function BoxDetail() {
     } finally { setOpening(false) }
   }
 
+  const handleOpen = () => {
+    if (!user) { navigate('/login'); return }
+    if (opening || openData) return
+    doOpen()
+  }
+
   const handleClose = () => setOpenData(null)
 
   const handlePlayAgain = () => {
     setOpenData(null)
-    setTimeout(handleOpen, 80)
+    doOpen()
   }
 
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>
