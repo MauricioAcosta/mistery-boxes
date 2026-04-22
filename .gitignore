@@ -117,3 +117,4 @@ pids/
 *.tmp
 *.temp
 .cache/
+.vercel
