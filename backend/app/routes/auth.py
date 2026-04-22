@@ -94,6 +94,13 @@ def forgot_password():
             'from': current_app.config['MAIL_FROM'],
             'to': [user.email],
             'subject': 'Restablece tu contraseña — Mystery Boxes',
+            'text': (
+                f"Hola {user.username},\n\n"
+                f"Recibimos una solicitud para restablecer tu contraseña.\n"
+                f"El enlace es válido por 1 hora.\n\n"
+                f"Haz clic aquí: {reset_url}\n\n"
+                f"Si no solicitaste esto, ignora este correo."
+            ),
             'html': f"""
 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0f172a;color:#e2e8f0;border-radius:12px">
   <h2 style="color:#f59e0b;margin-bottom:8px">🎁 Mystery Boxes</h2>
