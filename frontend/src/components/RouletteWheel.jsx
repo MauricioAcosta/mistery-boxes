@@ -1,19 +1,33 @@
 import { useRef, useEffect, useMemo, useCallback } from 'react'
 
+/* ── Colores de segmento — estilo casino vibrante ─────────── */
+const PALETTE = [
+  '#c0392b', // rojo casino
+  '#1a3a5c', // azul noche
+  '#1e8449', // verde mesa
+  '#6c3483', // púrpura
+  '#d35400', // naranja quemado
+  '#117a65', // verde azulado
+  '#922b21', // rojo oscuro
+  '#1f618d', // azul real
+  '#b7950b', // dorado oscuro
+  '#5b2c6f', // violeta
+]
+
 const RARITY_COLORS = {
   common: '#94a3b8', uncommon: '#22c55e',
   rare: '#3b82f6', epic: '#a855f7', legendary: '#f59e0b',
 }
 const TWO_PI = Math.PI * 2
 
-function playTick(ctx, vol = 0.15) {
+function playTick(ctx, vol = 0.2) {
   if (!ctx) return
   try {
     const o = ctx.createOscillator()
     const g = ctx.createGain()
     o.connect(g); g.connect(ctx.destination)
     o.type = 'triangle'
-    o.frequency.value = 550 + Math.random() * 350
+    o.frequency.value = 600 + Math.random() * 400
     g.gain.setValueAtTime(vol, ctx.currentTime)
     g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06)
     o.start(); o.stop(ctx.currentTime + 0.07)
@@ -30,6 +44,7 @@ export default function RouletteWheel({ items, winnerItemId, onSpinComplete }) {
   const rafRef = useRef(null)
   const imgs = useRef({})
 
+  /* ── Segmentos ─────────────────────────────────────────────── */
   const segs = useMemo(() => {
     if (!items?.length) return []
     const total = items.reduce((s, i) => s + i.weight, 0)
@@ -42,24 +57,20 @@ export default function RouletteWheel({ items, winnerItemId, onSpinComplete }) {
     })
   }, [items])
 
-  // Preload images
+  /* ── Precarga de imágenes ──────────────────────────────────── */
   useEffect(() => {
     items?.forEach(item => {
       const url = item.product?.image_url
       if (!url || imgs.current[url]) return
       const img = new Image(); img.crossOrigin = 'anonymous'
       img.onload = () => { imgs.current[url] = img }
-      img.onerror = () => {} // silently ignore
       img.src = url
     })
   }, [items])
 
-  // Trigger spin
+  /* ── Disparar giro ─────────────────────────────────────────── */
   useEffect(() => {
-    if (winnerItemId == null) {
-      st.current.phase = 'idle'
-      return
-    }
+    if (winnerItemId == null) { st.current.phase = 'idle'; return }
     const idx = items?.findIndex(it => it.id === winnerItemId) ?? -1
     if (idx < 0 || !segs[idx]) return
 
@@ -69,155 +80,222 @@ export default function RouletteWheel({ items, winnerItemId, onSpinComplete }) {
     st.current.audioCtx?.resume?.()
 
     const c = segs[idx].center
-    const curRot = st.current.rot
-    const curMod = ((curRot % TWO_PI) + TWO_PI) % TWO_PI
+    const curMod = ((st.current.rot % TWO_PI) + TWO_PI) % TWO_PI
     const needed = ((TWO_PI - c) - curMod + TWO_PI) % TWO_PI
-    const targetRot = curRot + needed + 9 * TWO_PI
-
+    st.current.targetRot = st.current.rot + needed + 9 * TWO_PI
     st.current.phase = 'spinning'
     st.current.startTime = null
-    st.current.startRot = curRot
-    st.current.targetRot = targetRot
+    st.current.startRot = st.current.rot
     st.current.lastSeg = -1
   }, [winnerItemId, items, segs])
 
+  /* ── Dibujo por frame ──────────────────────────────────────── */
   const drawFrame = useCallback((ts) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const s = st.current
 
     const parent = canvas.parentElement
-    const size = parent ? Math.min(parent.offsetWidth - 8, 360) : 300
+    const size = parent ? Math.min(parent.offsetWidth - 4, 360) : 300
     if (canvas.width !== size || canvas.height !== size) {
       canvas.width = size; canvas.height = size
     }
 
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, size, size)
-    const cx = size / 2, cy = size / 2, r = size / 2 - 22
+    const cx = size / 2, cy = size / 2
+    const rOuter = size / 2 - 4    // radio externo total
+    const rWheel = rOuter - 14     // radio de los segmentos
+    const rInner = rWheel * 0.22   // radio del círculo central
 
-    // Update rotation
+    /* ── Actualizar rotación ─────────────────────────────────── */
     if (s.phase === 'idle') {
-      s.rot += 0.006
+      s.rot += 0.007
     } else if (s.phase === 'spinning') {
       if (s.startTime == null) s.startTime = ts
       const progress = Math.min((ts - s.startTime) / s.duration, 1)
       const eased = 1 - Math.pow(1 - progress, 4)
       s.rot = s.startRot + (s.targetRot - s.startRot) * eased
 
-      // Tick on segment cross
       const mod = ((s.rot % TWO_PI) + TWO_PI) % TWO_PI
       const cur = segs.findIndex((sg, i) => {
         const end = i < segs.length - 1 ? segs[i + 1].start : TWO_PI
         return mod >= sg.start && mod < end
       })
       if (cur >= 0 && cur !== s.lastSeg) {
-        playTick(s.audioCtx, progress < 0.6 ? 0.25 : 0.12)
+        playTick(s.audioCtx, progress < 0.55 ? 0.3 : 0.14)
         s.lastSeg = cur
       }
       if (progress >= 1) {
         s.rot = s.targetRot
         s.phase = 'done'
-        playTick(s.audioCtx, 0.4)
+        playTick(s.audioCtx, 0.45)
         setTimeout(() => onSpinComplete?.(), 400)
       }
     }
 
-    // Outer glow ring
+    /* ── Sombra exterior ─────────────────────────────────────── */
     ctx.save()
-    ctx.shadowColor = 'rgba(249,115,22,0.5)'
-    ctx.shadowBlur = 20
-    ctx.beginPath(); ctx.arc(cx, cy, r + 10, 0, TWO_PI)
-    ctx.fillStyle = '#111827'; ctx.fill()
+    ctx.shadowColor = 'rgba(249,115,22,0.6)'
+    ctx.shadowBlur = 28
+    ctx.beginPath(); ctx.arc(cx, cy, rOuter, 0, TWO_PI)
+    ctx.fillStyle = '#0a0f1a'; ctx.fill()
     ctx.restore()
 
-    // Segments
+    /* ── Aro exterior dorado (rim) ───────────────────────────── */
+    ctx.beginPath(); ctx.arc(cx, cy, rOuter, 0, TWO_PI)
+    const rimGrad = ctx.createLinearGradient(cx - rOuter, cy, cx + rOuter, cy)
+    rimGrad.addColorStop(0,   '#d4af37')
+    rimGrad.addColorStop(0.5, '#f5d76e')
+    rimGrad.addColorStop(1,   '#d4af37')
+    ctx.fillStyle = rimGrad; ctx.fill()
+
+    /* ── Segmentos ───────────────────────────────────────────── */
     segs.forEach((seg, i) => {
       const a0 = seg.start - Math.PI / 2 + s.rot
       const a1 = a0 + seg.arc
-      const rc = RARITY_COLORS[seg.item.product?.rarity || 'common']
+      const mid = a0 + seg.arc / 2
+      const baseColor = PALETTE[i % PALETTE.length]
 
+      /* Relleno del segmento */
       ctx.beginPath()
       ctx.moveTo(cx, cy)
-      ctx.arc(cx, cy, r, a0, a1)
+      ctx.arc(cx, cy, rWheel, a0, a1)
       ctx.closePath()
-      ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#0f172a'
+      ctx.fillStyle = baseColor
       ctx.fill()
 
-      // Rarity glow strip on outer edge
-      const mid = a0 + seg.arc / 2
-      const gr = ctx.createLinearGradient(
-        cx + Math.cos(mid) * r * 0.5, cy + Math.sin(mid) * r * 0.5,
-        cx + Math.cos(mid) * r, cy + Math.sin(mid) * r
-      )
-      gr.addColorStop(0, 'transparent')
-      gr.addColorStop(1, rc + '55')
+      /* Franja exterior clara (borde interior del rim) */
       ctx.beginPath()
       ctx.moveTo(cx, cy)
-      ctx.arc(cx, cy, r, a0, a1)
+      ctx.arc(cx, cy, rWheel, a0, a1)
       ctx.closePath()
-      ctx.fillStyle = gr; ctx.fill()
+      const edgeGrad = ctx.createLinearGradient(
+        cx + Math.cos(mid) * rWheel * 0.7, cy + Math.sin(mid) * rWheel * 0.7,
+        cx + Math.cos(mid) * rWheel,       cy + Math.sin(mid) * rWheel
+      )
+      edgeGrad.addColorStop(0, 'transparent')
+      edgeGrad.addColorStop(1, 'rgba(255,255,255,0.12)')
+      ctx.fillStyle = edgeGrad; ctx.fill()
 
-      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 0.8; ctx.stroke()
+      /* Borde entre segmentos */
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.moveTo(
+        cx + Math.cos(a0) * rInner * 1.2,
+        cy + Math.sin(a0) * rInner * 1.2
+      )
+      ctx.lineTo(cx + Math.cos(a0) * rWheel, cy + Math.sin(a0) * rWheel)
+      ctx.stroke()
 
-      // Content: image + price
-      if (seg.arc > 0.15) {
-        const imgDist = r * 0.70
-        const imgX = cx + Math.cos(mid) * imgDist
-        const imgY = cy + Math.sin(mid) * imgDist
-        const imgUrl = seg.item.product?.image_url
-        const img = imgs.current[imgUrl]
+      /* Contenido: imagen + precio ───────────────────────────── */
+      if (seg.arc > 0.18) {
+        const contentDist = rWheel * 0.62
+        const imgX = cx + Math.cos(mid) * contentDist
+        const imgY = cy + Math.sin(mid) * contentDist
+        const url  = seg.item.product?.image_url
+        const img  = imgs.current[url]
 
         ctx.save()
         ctx.translate(imgX, imgY)
         ctx.rotate(mid + Math.PI / 2)
 
-        if (img && seg.arc > 0.22) {
-          const isz = Math.min(24, r * 0.14)
-          ctx.drawImage(img, -isz / 2, -isz - 2, isz, isz)
+        /* Imagen circular con clip */
+        if (img && seg.arc > 0.25) {
+          const isz = Math.min(26, rWheel * 0.16)
+          ctx.save()
+          ctx.beginPath(); ctx.arc(0, -isz * 0.7, isz / 2, 0, TWO_PI)
+          ctx.clip()
+          ctx.drawImage(img, -isz / 2, -isz * 1.2, isz, isz)
+          ctx.restore()
         }
-        ctx.fillStyle = rc
-        ctx.font = `bold ${Math.max(8, Math.min(11, r * 0.07))}px sans-serif`
+
+        /* Precio en blanco con sombra */
+        const price = `$${seg.item.product?.retail_value?.toFixed(0)}`
+        const fs = Math.max(9, Math.min(13, rWheel * 0.075))
+        ctx.font = `bold ${fs}px sans-serif`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.fillText(`$${seg.item.product?.retail_value?.toFixed(0)}`, 0, img && seg.arc > 0.22 ? 6 : 0)
+        ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 3
+        ctx.fillStyle = '#ffffff'
+        ctx.fillText(price, 0, img && seg.arc > 0.25 ? 10 : 0)
+        ctx.shadowBlur = 0
         ctx.restore()
       }
     })
 
-    // Outer ring + dots at segment edges
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, TWO_PI)
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3; ctx.stroke()
+    /* ── Marcas en el aro (bolitas doradas) ──────────────────── */
+    const nTicks = Math.max(segs.length * 2, 24)
+    for (let i = 0; i < nTicks; i++) {
+      const a = (i / nTicks) * TWO_PI - Math.PI / 2 + s.rot
+      const tx = cx + Math.cos(a) * (rWheel + 7)
+      const ty = cy + Math.sin(a) * (rWheel + 7)
+      const isSegBound = segs.some(sg => {
+        const diff = Math.abs(((sg.start - Math.PI / 2 + s.rot) % TWO_PI + TWO_PI) % TWO_PI -
+                             ((a + TWO_PI) % TWO_PI))
+        return diff < 0.05 || diff > TWO_PI - 0.05
+      })
+      ctx.beginPath()
+      ctx.arc(tx, ty, isSegBound ? 4 : 2.5, 0, TWO_PI)
+      ctx.fillStyle = isSegBound ? '#f5d76e' : 'rgba(255,255,255,0.5)'
+      ctx.fill()
+    }
 
-    segs.forEach(seg => {
-      const a = seg.start - Math.PI / 2 + s.rot
-      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r
-      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, TWO_PI)
-      ctx.fillStyle = '#f97316'; ctx.fill()
-    })
+    /* ── Círculo interior (plato central) ────────────────────── */
+    // Sombra
+    ctx.save()
+    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 12
+    ctx.beginPath(); ctx.arc(cx, cy, rInner + 3, 0, TWO_PI)
+    ctx.fillStyle = '#0a0f1a'; ctx.fill()
+    ctx.restore()
 
-    // Center circle
-    ctx.beginPath(); ctx.arc(cx, cy, 26, 0, TWO_PI)
-    const cg = ctx.createRadialGradient(cx - 4, cy - 4, 2, cx, cy, 26)
-    cg.addColorStop(0, '#374151'); cg.addColorStop(1, '#0f172a')
+    // Gradiente metálico
+    const cg = ctx.createRadialGradient(cx - rInner * 0.3, cy - rInner * 0.3, 2, cx, cy, rInner + 3)
+    cg.addColorStop(0, '#475569')
+    cg.addColorStop(0.5, '#1e293b')
+    cg.addColorStop(1, '#0f172a')
+    ctx.beginPath(); ctx.arc(cx, cy, rInner + 3, 0, TWO_PI)
     ctx.fillStyle = cg; ctx.fill()
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.stroke()
 
-    ctx.fillStyle = '#f97316'
-    ctx.font = 'bold 15px serif'
+    // Aro dorado del centro
+    ctx.beginPath(); ctx.arc(cx, cy, rInner + 3, 0, TWO_PI)
+    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2.5; ctx.stroke()
+
+    // Ícono central
+    const iconSize = rInner * 0.85
+    ctx.font = `${iconSize}px serif`
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText('★', cx, cy)
+    ctx.fillText('🎁', cx, cy + 1)
 
-    // Pointer triangle at top
-    const py = cy - r - 4
+    /* ── Puntero ─────────────────────────────────────────────── */
+    const py = cy - rOuter + 1
+    // Sombra del puntero
+    ctx.save()
+    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 8
+    // Cuerpo del puntero (rectángulo redondeado + triángulo)
+    const pw = 16, ph = 22
     ctx.beginPath()
-    ctx.moveTo(cx - 11, py - 15)
-    ctx.lineTo(cx + 11, py - 15)
+    ctx.moveTo(cx - pw / 2, py - ph)
+    ctx.lineTo(cx + pw / 2, py - ph)
+    ctx.lineTo(cx + pw / 2, py - 8)
     ctx.lineTo(cx, py + 4)
+    ctx.lineTo(cx - pw / 2, py - 8)
     ctx.closePath()
-    ctx.fillStyle = '#f97316'
-    ctx.shadowColor = '#f97316'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke()
+
+    const pGrad = ctx.createLinearGradient(cx, py - ph, cx, py + 4)
+    pGrad.addColorStop(0, '#ef4444')
+    pGrad.addColorStop(1, '#b91c1c')
+    ctx.fillStyle = pGrad; ctx.fill()
+
+    // Borde blanco
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke()
+    // Brillo superior
+    ctx.beginPath()
+    ctx.moveTo(cx - pw / 2 + 3, py - ph + 2)
+    ctx.lineTo(cx + pw / 2 - 3, py - ph + 2)
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1; ctx.stroke()
+    ctx.restore()
 
     rafRef.current = requestAnimationFrame(drawFrame)
   }, [segs, onSpinComplete])
@@ -229,9 +307,6 @@ export default function RouletteWheel({ items, winnerItemId, onSpinComplete }) {
 
   return (
     <div className="roulette-wrap">
-      <div className="roulette-label">
-        {st.current.phase === 'idle' ? '🎰 Gira siempre — ¡ábrela para ganar!' : '⚡ Girando…'}
-      </div>
       <canvas ref={canvasRef} className="roulette-canvas" />
     </div>
   )

@@ -3250,27 +3250,16 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
-  position: relative;
+  padding: 0.75rem 0.5rem 0.5rem;
   width: 100%;
-}
-.roulette-label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 0.75rem;
-  animation: pulse-label 2.5s infinite;
-}
-@keyframes pulse-label {
-  0%, 100% { opacity: 0.6; }
-  50%       { opacity: 1; color: var(--accent); }
 }
 .roulette-canvas {
   display: block;
   border-radius: 50%;
-  box-shadow: 0 0 40px rgba(249,115,22,0.2), 0 0 80px rgba(249,115,22,0.08);
+  box-shadow:
+    0 0 0 3px #d4af37,
+    0 0 30px rgba(212,175,55,0.3),
+    0 0 60px rgba(249,115,22,0.15);
   max-width: 100%;
 }
 
