@@ -51,6 +51,7 @@ export default function BoxDetail() {
   const handleClose = () => setOpenData(null)
 
   const handlePlayAgain = () => {
+    if (opening) return
     setOpenData(null)
     doOpen()
   }
