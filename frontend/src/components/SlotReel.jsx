@@ -112,11 +112,13 @@ export default function SlotReel({ box, opening, onClose }) {
     // Reset posición
     track.style.transition = 'none'
     track.style.transform  = 'translateX(0)'
-    track.getBoundingClientRect()
+    track.getBoundingClientRect()  // force reflow
 
-    const containerW  = view.offsetWidth
-    const centerOff   = containerW / 2 - CARD_W / 2
-    const targetX     = -(WINNER_IDX * CARD_W - centerOff)
+    // Medir posición real del elemento ganador en el DOM
+    const winnerEl     = track.children[WINNER_IDX]
+    const winnerLeft   = winnerEl.offsetLeft
+    const winnerCenter = winnerLeft + winnerEl.offsetWidth / 2
+    const targetX      = view.offsetWidth / 2 - winnerCenter
 
     // Ticks progresivos
     let tickInterval = 60
