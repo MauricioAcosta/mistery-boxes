@@ -58,7 +58,11 @@
   --transition-slow: 0.3s ease;
 }
 
-html { font-size: 16px; scroll-behavior: smooth; }
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  overflow-x: hidden;   /* elimina scroll horizontal global */
+}
 
 body {
   font-family: var(--font);
@@ -67,6 +71,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;   /* refuerzo para iOS Safari */
   background-image:
     radial-gradient(ellipse 60% 50% at 80% -10%, rgba(249,115,22,.07) 0%, transparent 60%),
     radial-gradient(ellipse 50% 40% at -10% 60%, rgba(245,158,11,.05) 0%, transparent 60%);
@@ -3119,22 +3124,30 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   display: none;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: 5px;
   cursor: pointer;
-  padding: 0.4rem;
-  background: none;
-  border: none;
-  margin-left: 0.5rem;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
+  transition: border-color var(--transition), background var(--transition);
+}
+.nav-hamburger:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
 }
 .nav-hamburger span {
   display: block;
-  width: 22px;
+  width: 18px;
   height: 2px;
   background: var(--text-primary);
   border-radius: 2px;
   transition: transform 0.25s, opacity 0.25s;
 }
+.nav-hamburger.open { border-color: var(--accent); }
 .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .nav-hamburger.open span:nth-child(2) { opacity: 0; }
 .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
@@ -3223,9 +3236,10 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
 
 /* Hide hamburger on desktop, show on mobile */
 @media (max-width: 768px) {
-  .nav-hamburger { display: flex; }
-  .navbar-links  { display: none; }
+  .nav-hamburger  { display: flex; margin-left: auto; }
+  .navbar-links   { display: none; }
   .navbar-actions { display: none; }
+  .navbar-inner   { gap: 0; justify-content: space-between; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
