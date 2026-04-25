@@ -9,9 +9,11 @@ Infraestructura: **Fly.io + Neon + Vercel** — costo $0/mes
 
 | Servicio | URL |
 |---|---|
-| Frontend | https://frontend-ibp9ckdro-mauricioacostas-projects.vercel.app |
-| Backend API | https://mistery-boxes-backend.fly.dev |
-| Panel Admin | https://frontend-ibp9ckdro-mauricioacostas-projects.vercel.app/admin |
+| Frontend | https://mysteriesboxes.com |
+| Frontend (www) | https://www.mysteriesboxes.com |
+| Backend API | https://api.mysteriesboxes.com |
+| Backend (Fly fallback) | https://mistery-boxes-backend.fly.dev |
+| Panel Admin | https://mysteriesboxes.com/admin |
 | Monitoreo Fly.io | https://fly.io/apps/mistery-boxes-backend/monitoring |
 | Consola Neon | https://console.neon.tech/app/projects/small-union-65234467 |
 
@@ -68,7 +70,25 @@ API Key:  re_Gqdamypp_74SDgbsWa8Rdmzg7rTWJgFo7
 Fly.io:  amacostapulido@gmail.com
 Neon:    amacostapulido@gmail.com  — proyecto: mistery-boxes (small-union-65234467)
 Vercel:  mauricioacosta             — proyecto: frontend
+GoDaddy: amacostapulido@gmail.com  — dominio: mysteriesboxes.com
 ```
+
+---
+
+## DNS — GoDaddy (mysteriesboxes.com)
+
+Configurar estos registros en https://dcc.godaddy.com/manage/mysteriesboxes.com/dns
+
+| Tipo | Nombre | Valor | TTL |
+|------|--------|-------|-----|
+| A | @ | 76.76.21.21 | 600 |
+| A | www | 76.76.21.21 | 600 |
+| A | api | 66.241.125.115 | 600 |
+| AAAA | api | 2a09:8280:1::106:cb34:0 | 600 |
+
+> **Nota:** Los registros A de `@` y `www` apuntan a Vercel (frontend).
+> Los registros de `api` apuntan a Fly.io (backend).
+> La propagación DNS puede tardar entre 15 minutos y 48 horas.
 
 ---
 
