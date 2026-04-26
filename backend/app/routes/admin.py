@@ -22,7 +22,7 @@ def admin_required(fn):
     def wrapper(*args, **kwargs):
         user = _get_current_user()
         if not user or not user.is_admin():
-            return jsonify({'error': 'Admin access required'}), 403
+            return jsonify({'error': 'Acceso de administrador requerido'}), 403
         return fn(*args, **kwargs)
     return wrapper
 
@@ -34,7 +34,7 @@ def super_admin_required(fn):
     def wrapper(*args, **kwargs):
         user = _get_current_user()
         if not user or user.role not in ('super_admin', 'admin'):
-            return jsonify({'error': 'Super admin access required'}), 403
+            return jsonify({'error': 'Acceso de super administrador requerido'}), 403
         return fn(*args, **kwargs)
     return wrapper
 
@@ -80,13 +80,18 @@ def create_admin():
     required = ['username', 'email', 'password', 'provider_client_id']
     missing = [f for f in required if not data.get(f)]
     if missing:
-        return jsonify({'error': f'Missing: {missing}'}), 400
+        _labels = {
+            'username': 'nombre de usuario', 'email': 'correo electrónico',
+            'password': 'contraseña', 'provider_client_id': 'identificador del cliente',
+        }
+        missing_labels = [_labels.get(f, f) for f in missing]
+        return jsonify({'error': f'Faltan los siguientes campos: {", ".join(missing_labels)}'}), 400
     if len(data['password']) < 8:
-        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+        return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already registered'}), 409
+        return jsonify({'error': 'El correo ya está registrado'}), 409
     if User.query.filter_by(username=data['username']).first():
-        return jsonify({'error': 'Username already taken'}), 409
+        return jsonify({'error': 'El nombre de usuario ya está en uso'}), 409
 
     admin = User(
         username=data['username'],
@@ -123,7 +128,7 @@ def create_product():
     user = _get_current_user()
     data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['name', 'retail_value']):
-        return jsonify({'error': 'name and retail_value are required'}), 400
+        return jsonify({'error': 'El nombre del producto y su valor comercial son obligatorios'}), 400
 
     client_id = _scoped_client_id(user) or data.get('client_id', 'default')
 
@@ -149,7 +154,7 @@ def update_product(product_id):
     client_id = _scoped_client_id(user)
     product = Product.query.get_or_404(product_id)
     if client_id and product.client_id != client_id:
-        return jsonify({'error': 'Forbidden'}), 403
+        return jsonify({'error': 'Acceso denegado'}), 403
 
     data = request.get_json(silent=True) or {}
     for field in ['name', 'description', 'image_url', 'brand', 'category', 'rarity']:
@@ -182,7 +187,7 @@ def create_box():
     user = _get_current_user()
     data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['name', 'price']):
-        return jsonify({'error': 'name and price are required'}), 400
+        return jsonify({'error': 'El nombre de la caja y su precio son obligatorios'}), 400
 
     client_id = _scoped_client_id(user) or data.get('client_id', 'default')
 
@@ -216,7 +221,7 @@ def update_box(box_id):
     client_id = _scoped_client_id(user)
     box = Box.query.get_or_404(box_id)
     if client_id and box.client_id != client_id:
-        return jsonify({'error': 'Forbidden'}), 403
+        return jsonify({'error': 'Acceso denegado'}), 403
 
     data = request.get_json(silent=True) or {}
     for field in ['name', 'description', 'image_url', 'category']:
@@ -250,7 +255,7 @@ def toggle_box(box_id):
     client_id = _scoped_client_id(user)
     box = Box.query.get_or_404(box_id)
     if client_id and box.client_id != client_id:
-        return jsonify({'error': 'Forbidden'}), 403
+        return jsonify({'error': 'Acceso denegado'}), 403
     box.is_active = not box.is_active
     db.session.commit()
     return jsonify({'id': box.id, 'is_active': box.is_active})
@@ -331,18 +336,18 @@ def update_config():
     if 'house_edge_pct' in data:
         val = float(data['house_edge_pct'])
         if not (1.0 <= val <= 70.0):
-            return jsonify({'error': 'house_edge_pct must be between 1 and 70'}), 400
+            return jsonify({'error': 'El margen de la plataforma (%) debe estar entre 1 y 70'}), 400
         PlatformConfig.set('house_edge_pct', val, updated_by_id=user.id)
         updated['house_edge_pct'] = val
 
     if 'margin_strength' in data:
         val = float(data['margin_strength'])
         if not (0.0 <= val <= 1.0):
-            return jsonify({'error': 'margin_strength must be between 0 and 1'}), 400
+            return jsonify({'error': 'La intensidad del margen debe estar entre 0 (desactivado) y 1 (máximo)'}), 400
         PlatformConfig.set('margin_strength', val, updated_by_id=user.id)
         updated['margin_strength'] = val
 
     if not updated:
-        return jsonify({'error': 'No valid keys provided'}), 400
+        return jsonify({'error': 'No se proporcionaron claves válidas'}), 400
 
     return jsonify({'updated': updated, **PlatformConfig.all_as_dict()})

@@ -25,7 +25,7 @@ class WalletService:
               reference_type: str = None, reference_id: int = None) -> Wallet:
         wallet = WalletService._get_or_raise(user_id)
         if float(wallet.balance) < amount:
-            raise ValueError('Insufficient balance')
+            raise ValueError('Saldo insuficiente')
         wallet.balance = float(wallet.balance) - amount
         db.session.add(Transaction(
             wallet_id=wallet.id, type=reference_type or 'debit',
@@ -57,7 +57,7 @@ class WalletService:
         """Deduct USD and credit coins. Returns updated wallet."""
         wallet = WalletService._get_or_raise(user_id)
         if float(wallet.balance) < usd_amount:
-            raise ValueError('Insufficient balance')
+            raise ValueError('Saldo insuficiente')
         coins_to_add = int(usd_amount * WalletService.COINS_PER_USD)
         wallet.balance = float(wallet.balance) - usd_amount
         wallet.coins = (wallet.coins or 0) + coins_to_add
@@ -73,7 +73,7 @@ class WalletService:
     def debit_coins(user_id: int, coins: int, description: str = '', reference_id: int = None) -> Wallet:
         wallet = WalletService._get_or_raise(user_id)
         if (wallet.coins or 0) < coins:
-            raise ValueError('Insufficient coins')
+            raise ValueError('Monedas insuficientes')
         wallet.coins = (wallet.coins or 0) - coins
         db.session.flush()
         return wallet
@@ -82,5 +82,5 @@ class WalletService:
     def _get_or_raise(user_id: int) -> Wallet:
         wallet = Wallet.query.filter_by(user_id=user_id).first()
         if not wallet:
-            raise ValueError(f'Wallet not found for user {user_id}')
+            raise ValueError(f'Billetera no encontrada para el usuario {user_id}')
         return wallet

@@ -17,7 +17,7 @@ def verify():
     required = ['server_seed', 'client_seed', 'nonce', 'box_id']
     missing = [k for k in required if k not in data]
     if missing:
-        return jsonify({'error': f'Missing fields: {missing}'}), 400
+        return jsonify({'error': f'Faltan los siguientes campos para verificar: {", ".join(missing)}'}), 400
 
     server_seed = data['server_seed']
     client_seed = data['client_seed']

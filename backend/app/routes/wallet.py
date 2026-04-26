@@ -12,7 +12,7 @@ def get_wallet():
     user_id = int(get_jwt_identity())
     wallet = WalletService.get_wallet(user_id)
     if not wallet:
-        return jsonify({'error': 'Wallet not found'}), 404
+        return jsonify({'error': 'Billetera no encontrada'}), 404
     transactions = wallet.transactions.limit(50).all()
     return jsonify({
         'wallet': wallet.to_dict(),
@@ -29,17 +29,17 @@ def deposit():
     amount = data.get('amount')
 
     if amount is None:
-        return jsonify({'error': 'amount is required'}), 400
+        return jsonify({'error': 'El monto a depositar es obligatorio'}), 400
     try:
         amount = float(amount)
     except (TypeError, ValueError):
-        return jsonify({'error': 'amount must be a number'}), 400
+        return jsonify({'error': 'El monto debe ser un valor numérico'}), 400
     if not (1 <= amount <= 1000):
-        return jsonify({'error': 'amount must be between 1 and 1000'}), 400
+        return jsonify({'error': 'El monto debe estar entre $1 y $1000'}), 400
 
-    wallet = WalletService.deposit(user_id, amount, description='Simulated deposit')
+    wallet = WalletService.deposit(user_id, amount, description='Depósito simulado')
     db.session.commit()
-    return jsonify({'message': 'Deposit successful', 'wallet': wallet.to_dict()})
+    return jsonify({'message': 'Depósito realizado con éxito', 'wallet': wallet.to_dict()})
 
 
 @bp.route('/buy-coins', methods=['POST'])
@@ -51,13 +51,13 @@ def buy_coins():
     amount = data.get('usd_amount')
 
     if amount is None:
-        return jsonify({'error': 'usd_amount is required'}), 400
+        return jsonify({'error': 'El monto en USD es obligatorio'}), 400
     try:
         amount = float(amount)
     except (TypeError, ValueError):
-        return jsonify({'error': 'usd_amount must be a number'}), 400
+        return jsonify({'error': 'El monto en USD debe ser un valor numérico'}), 400
     if not (1 <= amount <= 500):
-        return jsonify({'error': 'usd_amount must be between 1 and 500'}), 400
+        return jsonify({'error': 'El monto debe estar entre $1 y $500'}), 400
 
     try:
         wallet = WalletService.buy_coins(user_id, amount)

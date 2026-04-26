@@ -20,9 +20,9 @@ class TestExchange:
         assert rv.status_code == 200
         data = rv.get_json()
         assert data['exchange_amount'] > 0
-        assert data['commission_pct'] == 10
-        # exchange_amount = retail_value * 0.9
-        assert data['exchange_amount'] == pytest.approx(data['product_value'] * 0.9, abs=0.01)
+        assert data['rate_pct'] == 70
+        # exchange_amount = retail_value * 0.70
+        assert data['exchange_amount'] == pytest.approx(data['product_value'] * 0.70, abs=0.01)
 
     def test_exchange_credits_wallet(self, client, db, funded_user, funded_token, box):
         balance_before = float(funded_user.wallet.balance) - float(box.price)
@@ -98,7 +98,7 @@ class TestShip:
                          json={'opening_id': opening_id, **incomplete},
                          headers=auth_header(funded_token))
         assert rv.status_code == 400
-        assert 'postal_code' in str(rv.get_json()['error'])
+        assert 'postal' in rv.get_json()['error'].lower()
 
     def test_ship_already_shipped_fails(self, client, db, funded_user, funded_token, box):
         opening_id = _open_box(client, box.id, funded_token)

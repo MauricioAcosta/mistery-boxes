@@ -79,7 +79,7 @@ class TestOpenBox:
         # user.wallet starts at $0
         rv = self._open(client, box.id, user_token)
         assert rv.status_code == 402
-        assert 'balance' in rv.get_json()['error'].lower()
+        assert 'saldo' in rv.get_json()['error'].lower()
 
     def test_open_box_requires_auth(self, client, db, box):
         rv = client.post(f'/api/boxes/{box.id}/open')

@@ -15,14 +15,14 @@ def register():
     data = request.get_json(silent=True) or {}
     required = ['username', 'email', 'password']
     if not all(k in data for k in required):
-        return jsonify({'error': 'username, email and password are required'}), 400
+        return jsonify({'error': 'El nombre de usuario, correo electrónico y contraseña son obligatorios'}), 400
 
     if User.query.filter_by(username=data['username']).first():
-        return jsonify({'error': 'Username already taken'}), 409
+        return jsonify({'error': 'El nombre de usuario ya está en uso'}), 409
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already registered'}), 409
+        return jsonify({'error': 'El correo ya está registrado'}), 409
     if len(data['password']) < 8:
-        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+        return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
 
     user = User(username=data['username'], email=data['email'])
     user.set_password(data['password'])
@@ -42,13 +42,13 @@ def register():
 def login():
     data = request.get_json(silent=True) or {}
     if not all(k in data for k in ['email', 'password']):
-        return jsonify({'error': 'email and password are required'}), 400
+        return jsonify({'error': 'El correo electrónico y la contraseña son obligatorios'}), 400
 
     user = User.query.filter_by(email=data['email']).first()
     if not user or not user.check_password(data['password']):
-        return jsonify({'error': 'Invalid credentials'}), 401
+        return jsonify({'error': 'Credenciales incorrectas'}), 401
     if not user.is_active:
-        return jsonify({'error': 'Account is disabled'}), 403
+        return jsonify({'error': 'Cuenta deshabilitada'}), 403
 
     token = create_access_token(identity=str(user.id))
     return jsonify({

@@ -24,7 +24,7 @@ class TestRegister:
     def test_register_missing_field(self, client, db):
         rv = client.post(self.URL, json={'username': 'x', 'email': 'x@x.com'})
         assert rv.status_code == 400
-        assert 'password' in rv.get_json()['error'].lower() or 'required' in rv.get_json()['error'].lower()
+        assert 'contraseña' in rv.get_json()['error'].lower() or 'obligatorio' in rv.get_json()['error'].lower()
 
     def test_register_short_password(self, client, db):
         rv = client.post(self.URL, json={
@@ -40,7 +40,7 @@ class TestRegister:
             'password': 'password123',
         })
         assert rv.status_code == 409
-        assert 'username' in rv.get_json()['error'].lower()
+        assert 'usuario' in rv.get_json()['error'].lower()
 
     def test_register_duplicate_email(self, client, db, user):
         rv = client.post(self.URL, json={
@@ -49,7 +49,7 @@ class TestRegister:
             'password': 'password123',
         })
         assert rv.status_code == 409
-        assert 'email' in rv.get_json()['error'].lower()
+        assert 'correo' in rv.get_json()['error'].lower()
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────

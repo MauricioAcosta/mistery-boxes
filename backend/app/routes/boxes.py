@@ -46,16 +46,16 @@ def open_box(box_id):
     payment = data.get('payment_method', 'usd')   # 'usd' | 'coins'
     wallet = WalletService.get_wallet(user_id)
     if not wallet:
-        return jsonify({'error': 'Wallet not found'}), 404
+        return jsonify({'error': 'Billetera no encontrada'}), 404
 
     if payment == 'coins':
         if not box.price_coins:
-            return jsonify({'error': 'This box does not accept coins'}), 400
+            return jsonify({'error': 'Esta caja no acepta monedas'}), 400
         if (wallet.coins or 0) < box.price_coins:
-            return jsonify({'error': 'Insufficient coins'}), 402
+            return jsonify({'error': 'Monedas insuficientes'}), 402
     else:
         if float(wallet.balance) < float(box.price):
-            return jsonify({'error': 'Insufficient balance'}), 402
+            return jsonify({'error': 'Saldo insuficiente'}), 402
 
     seed_pair = ProvablyFairService.get_active_seed(user_id)
     if not seed_pair:
@@ -70,7 +70,7 @@ def open_box(box_id):
 
     items = [i for i in box.items if i.is_active]
     if not items:
-        return jsonify({'error': 'Box has no items configured'}), 500
+        return jsonify({'error': 'La caja no tiene ítems configurados'}), 500
 
     # Load platform margin config and apply house-edge enforcement
     house_edge_pct  = PlatformConfig.get('house_edge_pct',  cast=float) or 30.0

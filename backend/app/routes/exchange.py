@@ -17,13 +17,13 @@ def exchange_prize():
     user_id = int(get_jwt_identity())
     data = request.get_json(silent=True) or {}
     if 'opening_id' not in data:
-        return jsonify({'error': 'opening_id is required'}), 400
+        return jsonify({'error': 'El identificador de la apertura es obligatorio'}), 400
 
     opening = BoxOpening.query.filter_by(
         id=data['opening_id'], user_id=user_id, status='pending'
     ).first()
     if not opening:
-        return jsonify({'error': 'Opening not found or already processed'}), 404
+        return jsonify({'error': 'Apertura no encontrada o ya procesada'}), 404
 
     product = opening.box_item.product
     retail_value = float(product.retail_value)
@@ -42,7 +42,7 @@ def exchange_prize():
     db.session.commit()
 
     return jsonify({
-        'message': 'Exchange successful',
+        'message': 'Canje realizado con éxito',
         'product': product.to_dict(),
         'product_value': retail_value,
         'rate_pct': int(EXCHANGE_RATE * 100),
@@ -62,13 +62,19 @@ def request_shipment():
     required_fields = ['opening_id', 'full_name', 'address', 'city', 'country', 'postal_code']
     missing = [f for f in required_fields if f not in data]
     if missing:
-        return jsonify({'error': f'Missing fields: {missing}'}), 400
+        _labels = {
+            'opening_id': 'ID de apertura', 'full_name': 'nombre completo',
+            'address': 'dirección', 'city': 'ciudad',
+            'country': 'país', 'postal_code': 'código postal',
+        }
+        missing_labels = [_labels.get(f, f) for f in missing]
+        return jsonify({'error': f'Faltan los siguientes datos de envío: {", ".join(missing_labels)}'}), 400
 
     opening = BoxOpening.query.filter_by(
         id=data['opening_id'], user_id=user_id, status='pending'
     ).first()
     if not opening:
-        return jsonify({'error': 'Opening not found or already processed'}), 404
+        return jsonify({'error': 'Apertura no encontrada o ya procesada'}), 404
 
     # Charge shipping cost if user has balance
     wallet = WalletService.get_wallet(user_id)
