@@ -17,11 +17,12 @@ export const es = {
     badgeReal: '✓ Productos Reales',
     noBoxes: 'No hay cajas disponibles en esta categoría.',
     howItWorks: 'Cómo Funciona',
+    howItWorksSub: 'Abre tu caja en 4 simples pasos',
     steps: [
-      { title: 'Recarga',        desc: 'Añade créditos a tu billetera de forma segura.' },
-      { title: 'Elige una Caja', desc: 'Escoge entre nuestras cajas misterio seleccionadas.' },
-      { title: 'Abre y Gana',    desc: 'Mira girar el carrete — cada resultado es verificable.' },
-      { title: 'Reclama',        desc: 'Canjea por créditos o recibe el producto en tu puerta.' },
+      { title: 'Recarga tu saldo',   desc: 'Añade créditos a tu billetera de forma segura.' },
+      { title: 'Elige tu caja',      desc: 'Escoge entre nuestras cajas misterio seleccionadas.' },
+      { title: 'Ábrela al instante', desc: 'Mira girar el carrete y descubre tu premio.' },
+      { title: 'Recibe tu premio',   desc: 'Productos reales enviados directo a tu puerta.' },
     ],
     categories: {
       all: 'Todos',
@@ -214,6 +215,7 @@ export const es = {
   boxCard: {
     hot: 'POPULAR',
     openFor: 'Abrir por',
+    open: 'Abrir Caja',
   },
 
   rarity: {

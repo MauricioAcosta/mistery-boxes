@@ -13,61 +13,69 @@ export default function BoxCard({ box }) {
   const { t } = useI18n()
   const topItems = (box.items || [])
     .sort((a, b) => b.product.retail_value - a.product.retail_value)
-    .slice(0, 4)
+    .slice(0, 3)
 
   const isHot = box.total_openings >= 100
 
   return (
-    <Link to={`/box/${box.id}`} className="box-card">
-      <div className="box-card-image">
+    <Link to={`/box/${box.id}`} className="hc-card">
+      {/* Image */}
+      <div className="hc-img-wrap">
         <img
           src={box.image_url}
           alt={box.name}
           loading="lazy"
+          className="hc-img"
           onError={e => { e.target.src = '/placeholder.svg' }}
         />
-        <div className="box-card-category">{box.category}</div>
-        {isHot && <div className="box-card-hot">🔥 {t('boxCard.hot')}</div>}
-        <div className="box-card-price-tag">
-          <span className="price-tag-label">{t('boxCard.openFor')}</span>
-          <span className="price-tag-value">${box.price.toFixed(2)}</span>
-        </div>
+        <span className="hc-cat">{box.category}</span>
+        {isHot && <span className="hc-hot">🔥 {t('boxCard.hot')}</span>}
       </div>
 
-      <div className="box-card-body">
-        <h3 className="box-card-name">{box.name}</h3>
-        <p className="box-card-desc">{box.description}</p>
+      {/* Content */}
+      <div className="hc-body">
+        <div className="hc-top-row">
+          <h3 className="hc-name">{box.name}</h3>
+          <div className="hc-price-col">
+            <span className="hc-price-lbl">{t('boxCard.openFor')}</span>
+            <span className="hc-price">${box.price.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <p className="hc-desc">{box.description}</p>
 
         {topItems.length > 0 && (
-          <div className="box-card-items">
+          <div className="hc-chips">
             {topItems.map(item => (
-              <div
+              <span
                 key={item.id}
-                className="item-chip"
-                style={{ borderColor: RARITY_COLORS[item.product.rarity] || '#94a3b8' }}
-                title={item.product.name}
+                className="hc-chip"
+                style={{
+                  borderColor: RARITY_COLORS[item.product.rarity] || '#94a3b8',
+                  color:       RARITY_COLORS[item.product.rarity] || '#94a3b8',
+                }}
               >
-                <span
-                  className="item-chip-dot"
-                  style={{ background: RARITY_COLORS[item.product.rarity] || '#94a3b8' }}
-                />
-                <span className="item-chip-name">{item.product.name}</span>
-              </div>
+                {item.product.name}
+              </span>
             ))}
           </div>
         )}
-      </div>
 
-      <div className="box-card-footer">
-        <div className="box-stats">
-          <span className="stat">
-            <span className="stat-label">RTP</span>
-            <span className="stat-value rtp">{box.rtp_pct}%</span>
-          </span>
-          <span className="stat">
-            <span className="stat-label">Aperturas</span>
-            <span className="stat-value">{box.total_openings.toLocaleString()}</span>
-          </span>
+        <div className="hc-footer">
+          <div className="hc-stats">
+            <span className="hc-stat">
+              <span className="hc-stat-l">RTP</span>
+              <span className="hc-stat-v rtp">{box.rtp_pct}%</span>
+            </span>
+            <span className="hc-divider" />
+            <span className="hc-stat">
+              <span className="hc-stat-l">APERTURAS</span>
+              <span className="hc-stat-v">{box.total_openings.toLocaleString()}</span>
+            </span>
+          </div>
+          <button className="hc-btn">
+            {t('boxCard.open')} <span className="hc-btn-arrow">›</span>
+          </button>
         </div>
       </div>
     </Link>

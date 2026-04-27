@@ -17,11 +17,12 @@ export const en = {
     badgeReal: '✓ Real Products',
     noBoxes: 'No boxes available in this category.',
     howItWorks: 'How It Works',
+    howItWorksSub: 'Open your box in 4 simple steps',
     steps: [
-      { title: 'Top Up',        desc: 'Add credits to your wallet securely.' },
-      { title: 'Choose a Box',  desc: 'Pick from our curated mystery boxes.' },
-      { title: 'Open & Win',    desc: 'Watch the reel spin — each result is provably fair.' },
-      { title: 'Claim',         desc: 'Exchange for credits or ship the real item to you.' },
+      { title: 'Top Up',          desc: 'Add credits to your wallet securely.' },
+      { title: 'Choose a Box',    desc: 'Pick from our curated mystery boxes.' },
+      { title: 'Open Instantly',  desc: 'Watch the reel spin and reveal your prize.' },
+      { title: 'Claim Prize',     desc: 'Real products shipped straight to your door.' },
     ],
     categories: {
       all: 'All',
@@ -214,6 +215,7 @@ export const en = {
   boxCard: {
     hot: 'HOT',
     openFor: 'Open for',
+    open: 'Open Box',
   },
 
   rarity: {
