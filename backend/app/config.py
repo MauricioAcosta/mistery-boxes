@@ -9,6 +9,14 @@ class Config:
     _db_url = os.getenv('DATABASE_URL', 'postgresql://mbuser:changeme_in_production@db:5432/mysteryboxes')
     SQLALCHEMY_DATABASE_URI = _db_url.replace('postgres://', 'postgresql://', 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Neon cierra conexiones inactivas — pre_ping revalida antes de usar y
+    # pool_recycle descarta conexiones viejas antes de que Neon las cierre.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_size': 5,
+        'max_overflow': 2,
+    }
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-prod')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
