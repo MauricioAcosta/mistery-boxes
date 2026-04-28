@@ -4,6 +4,7 @@
  * No requiere modal separado.
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
@@ -73,7 +74,8 @@ function buildReel(items, winnerId) {
    Componente principal
    ═══════════════════════════════════════════════════════════════ */
 export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
-  const { refreshWallet } = useAuth()
+  const { setWallet } = useAuth()
+  const navigate = useNavigate()
   const trackRef    = useRef(null)
   const viewRef     = useRef(null)
   const actxRef     = useRef(null)
@@ -171,7 +173,8 @@ export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
     setActionBusy(true)
     try {
       const r = await api.post('/exchange', { opening_id: opening.opening_id })
-      refreshWallet()
+      // Actualizar saldo inmediatamente desde la respuesta, sin segunda llamada
+      setWallet(w => ({ ...w, balance: r.data.wallet_balance }))
       setActionMsg(`💰 ¡Canjeado! +$${r.data.exchange_amount.toFixed(2)} en tu billetera`)
       setPhase('done')
     } catch (e) {
@@ -183,14 +186,16 @@ export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
     e.preventDefault()
     setShipErr(''); setActionBusy(true)
     try {
-      await api.post('/ship', { opening_id: opening.opening_id, ...addr })
-      refreshWallet()
+      const r = await api.post('/ship', { opening_id: opening.opening_id, ...addr })
+      setWallet(w => ({ ...w, balance: r.data.wallet_balance }))
       setActionMsg('📦 ¡Envío solicitado! Te contactamos en 24 h.')
       setPhase('done')
     } catch (e) {
       setShipErr(e.response?.data?.error || 'Error al solicitar envío')
     } finally { setActionBusy(false) }
   }
+
+  const handleViewHistory = () => { onClose(); navigate('/history') }
 
   const exchAmt = ((winner?.product?.retail_value || 0) * 0.70).toFixed(2)
 
@@ -326,7 +331,16 @@ export default function SlotReel({ box, opening, onClose, onPlayAgain }) {
         {phase === 'done' && (
           <div className="slot-done">
             <p className="slot-msg slot-msg--ok">{actionMsg}</p>
-            <button className="btn btn-primary" onClick={onClose}>Ver Historial</button>
+            <div className="slot-actions-btns">
+              <button className="btn btn-outline slot-action-btn" onClick={handleViewHistory}>
+                📋 Ver Historial
+              </button>
+              {onPlayAgain && (
+                <button className="btn btn-primary slot-action-btn" onClick={onPlayAgain}>
+                  🎰 ¡Abrir Otra! — ${box.price.toFixed(2)}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

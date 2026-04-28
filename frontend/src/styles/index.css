@@ -1186,7 +1186,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0.85rem;
+  padding: 0.85rem 1.25rem 1.25rem 0.85rem;
   min-width: 0;
   position: relative;
   z-index: 1;
@@ -3760,7 +3760,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   .hc-img-wrap { width: 105px; min-height: 105px; }
   .hc-name { font-size: 0.88rem; }
   .hc-price { font-size: 1.05rem; }
-  .hc-body { padding: 0.65rem; }
+  .hc-body { padding: 0.65rem 1rem 1rem 0.65rem; }
+  .hc-footer { flex-wrap: wrap; gap: 0.4rem; }
+  .hc-btn { flex: 1; min-width: 0; justify-content: center; }
   .admin-table th, .admin-table td { padding: .5rem .65rem; font-size: .78rem; }
   .box-detail-name { font-size: 1.5rem; }
   .modal { padding: 1.25rem; margin: .75rem; }
@@ -3785,6 +3787,8 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   .step-block-desc { font-size: 0.88rem; }
   .boxes-grid { grid-template-columns: repeat(3, 1fr); }
   .hc-img-wrap { width: 200px; min-height: 180px; }
+  .hc-footer { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .hc-btn { width: 100%; justify-content: center; }
 }
 
 /* Accesibilidad: sin animaciones ─────────────────────────── */
