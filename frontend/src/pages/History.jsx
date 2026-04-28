@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n/index'
 
 const RARITY_COLORS = {
@@ -144,6 +145,7 @@ export default function History() {
 
 function OpeningCard({ opening, onAction }) {
   const { t } = useI18n()
+  const { setWallet } = useAuth()
   const [busy, setBusy]         = useState(false)
   const [showShip, setShowShip] = useState(false)
   const [addr, setAddr]         = useState(EMPTY_ADDR)
@@ -159,6 +161,7 @@ function OpeningCard({ opening, onAction }) {
     setBusy(true)
     try {
       const r = await api.post('/exchange', { opening_id: opening.id })
+      setWallet(w => ({ ...w, balance: r.data.wallet_balance }))
       onAction(t('history.actionExchangeOk', { amount: r.data.exchange_amount.toFixed(2) }))
     } catch { onAction(t('history.actionFailed')) }
     finally { setBusy(false) }
@@ -169,7 +172,8 @@ function OpeningCard({ opening, onAction }) {
     setShipErr('')
     setBusy(true)
     try {
-      await api.post('/ship', { opening_id: opening.id, ...addr })
+      const r = await api.post('/ship', { opening_id: opening.id, ...addr })
+      setWallet(w => ({ ...w, balance: r.data.wallet_balance }))
       setShowShip(false)
       onAction(t('history.actionShipOk'))
     } catch (err) {
