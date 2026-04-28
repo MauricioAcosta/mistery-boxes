@@ -12,9 +12,9 @@ export const en = {
     heroTitleLine1: 'Open Your',
     heroSubtitle:
       'Premium mystery boxes with provably fair outcomes. Every roll is independently verifiable.',
-    badgeFair: '✓ Provably Fair',
-    badgeInstant: '✓ Instant Win',
-    badgeReal: '✓ Real Products',
+    badgeFair: 'Provably Fair',     badgeFairSub: '100% Verifiable',
+    badgeInstant: 'Instant Win',    badgeInstantSub: 'No Waiting',
+    badgeReal: 'Real Products',     badgeRealSub: 'Original Items',
     noBoxes: 'No boxes available in this category.',
     howItWorks: 'How It Works',
     howItWorksSub: 'Open your box in 4 simple steps',

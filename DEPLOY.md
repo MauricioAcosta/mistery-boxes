@@ -5,6 +5,56 @@ Infraestructura: **Fly.io + Neon + Vercel** — costo $0/mes
 
 ---
 
+## ⚡ Referencia Rápida — Subir Cambios
+
+> Copia y pega según lo que hayas modificado.
+
+### Cambié solo el frontend (CSS, imágenes, componentes React)
+
+```bash
+cd /home/andy/work/mistery-boxes
+
+git add frontend/
+git commit -m "descripción del cambio"
+git push origin master
+# Vercel despliega automáticamente en 1-2 minutos
+```
+
+### Cambié solo el backend (rutas Flask, modelos, config)
+
+```bash
+cd /home/andy/work/mistery-boxes
+
+git add backend/
+git commit -m "descripción del cambio"
+git push origin master
+
+cd backend/
+fly deploy
+# Esperar: "v(N) deployed successfully" — toma 2-3 minutos
+```
+
+### Cambié frontend Y backend
+
+```bash
+cd /home/andy/work/mistery-boxes
+
+git add frontend/ backend/
+git commit -m "descripción del cambio"
+git push origin master
+# → Vercel despliega el frontend automáticamente
+
+cd backend/
+fly deploy
+# → Fly.io despliega el backend manualmente
+```
+
+### La base de datos (Neon) no requiere despliegue
+
+Las tablas se crean automáticamente al arrancar el backend. Si necesitas ejecutar una consulta directa ve a la consola: https://console.neon.tech/app/projects/small-union-65234467
+
+---
+
 ## URLs de Producción
 
 | Servicio | URL |
@@ -16,6 +66,7 @@ Infraestructura: **Fly.io + Neon + Vercel** — costo $0/mes
 | Panel Admin | https://mysteriesboxes.com/admin |
 | Monitoreo Fly.io | https://fly.io/apps/mistery-boxes-backend/monitoring |
 | Consola Neon | https://console.neon.tech/app/projects/small-union-65234467 |
+| Dashboard Vercel | https://vercel.com/dashboard |
 
 ---
 
@@ -46,24 +97,22 @@ postgresql://neondb_owner:npg_jo9SXzNky2PE@ep-nameless-dream-am07pzx6-pooler.c-5
 SECRET_KEY:     25374414f48cab46bece4baaae70d09f5675a260bfa023d1bddd6f407140ec66
 JWT_SECRET_KEY: 5d7bd1fb8a663124334b81eb6ab54d9409d8350eaed2527a62b88df42e94325d
 FLASK_ENV:      production
-RESEND_API_KEY: (ver sección Resend más abajo)
+RESEND_API_KEY: re_Gqdamypp_74SDgbsWa8Rdmzg7rTWJgFo7
 MAIL_FROM:      Mystery Boxes <noreply@mysteryboxes.com>
 FRONTEND_URL:   https://frontend-eight-zeta-74.vercel.app
 ```
 
 ### Resend — Email transaccional
 ```
-Cuenta:   amacostapulido@gmail.com
-Plan:     Free (3 000 correos/mes, 100/día)
+Cuenta:    amacostapulido@gmail.com
+Plan:      Free (3 000 correos/mes, 100/día)
 Dashboard: https://resend.com/emails
-Dominio:  onboarding@resend.dev (sandbox — solo envía al correo del dueño de la cuenta)
-API Key:  re_Gqdamypp_74SDgbsWa8Rdmzg7rTWJgFo7
+API Key:   re_Gqdamypp_74SDgbsWa8Rdmzg7rTWJgFo7
+Dominio:   onboarding@resend.dev (sandbox — solo envía al dueño de la cuenta)
 ```
 
-> **Nota sobre el dominio sandbox:** En el plan free de Resend, el sender debe ser
-> `onboarding@resend.dev` a menos que verifiques un dominio propio. Los correos
-> llegarán correctamente, pero el remitente visible será `onboarding@resend.dev`.
-> Para usar `noreply@mysteryboxes.com` se requiere verificar el dominio en Resend DNS.
+> En el plan free de Resend el remitente visible es `onboarding@resend.dev`.
+> Para usar `noreply@mysteryboxes.com` hay que verificar el dominio en el panel de Resend.
 
 ### Cuentas de los servicios
 ```
@@ -71,24 +120,24 @@ Fly.io:  amacostapulido@gmail.com
 Neon:    amacostapulido@gmail.com  — proyecto: mistery-boxes (small-union-65234467)
 Vercel:  mauricioacosta             — proyecto: frontend
 GoDaddy: amacostapulido@gmail.com  — dominio: mysteriesboxes.com
+GitHub:  MauricioAcosta             — repo: mistery-boxes
 ```
 
 ---
 
 ## DNS — GoDaddy (mysteriesboxes.com)
 
-Configurar estos registros en https://dcc.godaddy.com/manage/mysteriesboxes.com/dns
+Configurar en https://dcc.godaddy.com/manage/mysteriesboxes.com/dns
 
-| Tipo | Nombre | Valor | TTL |
-|------|--------|-------|-----|
-| A | @ | 76.76.21.21 | 600 |
-| A | www | 76.76.21.21 | 600 |
-| A | api | 66.241.125.115 | 600 |
-| AAAA | api | 2a09:8280:1::106:cb34:0 | 600 |
+| Tipo  | Nombre | Valor                       | TTL |
+|-------|--------|-----------------------------|-----|
+| A     | @      | 76.76.21.21                 | 600 |
+| A     | www    | 76.76.21.21                 | 600 |
+| A     | api    | 66.241.125.115              | 600 |
+| AAAA  | api    | 2a09:8280:1::106:cb34:0     | 600 |
 
-> **Nota:** Los registros A de `@` y `www` apuntan a Vercel (frontend).
-> Los registros de `api` apuntan a Fly.io (backend).
-> La propagación DNS puede tardar entre 15 minutos y 48 horas.
+> `@` y `www` apuntan a Vercel (frontend). `api` apunta a Fly.io (backend).
+> La propagación DNS puede tardar entre 15 min y 48 horas.
 
 ---
 
@@ -101,7 +150,7 @@ Usuario
 Vercel (CDN global)
   React SPA — npm run build → dist/
   │
-  │  VITE_API_BASE_URL → https://mistery-boxes-backend.fly.dev
+  │  VITE_API_BASE_URL → https://api.mysteriesboxes.com
   │
   ▼
 Fly.io — mistery-boxes-backend (Dallas dfw)
@@ -121,120 +170,48 @@ Neon PostgreSQL (us-east-1)
 
 ---
 
-## Cómo se desplegó cada componente
+## Primer despliegue (solo si es una máquina nueva)
 
-### 1. Neon — Base de datos
+### Neon — Base de datos
+Las tablas se crean automáticamente al primer arranque del backend. No requiere acción manual.
 
-Neon ya tenía el proyecto creado desde la consola web. Se obtuvo la connection string con el MCP de Neon directamente desde Claude Code.
+### Fly.io — Backend Flask
 
-La base de datos se inicializa automáticamente al arrancar el backend: el `entrypoint.sh` corre `db.create_all()` y `seed_demo_data()` en el primer inicio.
-
-**Tablas creadas automáticamente al primer deploy.**
-
----
-
-### 2. Fly.io — Backend Flask
-
-**Instalación del CLI:**
 ```bash
+# Instalar CLI
 curl -L https://fly.io/install.sh | sh
 export PATH="$HOME/.fly/bin:$PATH"
-fly auth login   # ya autenticado con amacostapulido@gmail.com
-```
+fly auth login   # usar amacostapulido@gmail.com
 
-**Crear la app:**
-```bash
+# Crear la app (solo una vez)
 cd backend/
 fly apps create mistery-boxes-backend
-```
 
-**Cargar secrets (variables de entorno privadas):**
-```bash
+# Cargar variables de entorno
 fly secrets set \
   DATABASE_URL="postgresql://neondb_owner:npg_jo9SXzNky2PE@ep-nameless-dream-am07pzx6-pooler.c-5.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require" \
   SECRET_KEY="25374414f48cab46bece4baaae70d09f5675a260bfa023d1bddd6f407140ec66" \
   JWT_SECRET_KEY="5d7bd1fb8a663124334b81eb6ab54d9409d8350eaed2527a62b88df42e94325d" \
   FLASK_ENV="production"
-```
 
-**Desplegar:**
-```bash
+# Desplegar
 fly deploy --wait-timeout 120
 ```
 
-Fly.io construye la imagen Docker (`backend/Dockerfile`), la sube a su registry y levanta la máquina en Dallas. El `entrypoint.sh` espera la DB, crea tablas y arranca Gunicorn.
+### Vercel — Frontend React
 
-**Archivo de configuración:** [`backend/fly.toml`](backend/fly.toml)
-
-```toml
-app            = "mistery-boxes-backend"
-primary_region = "dfw"   # Dallas — más cercano a Colombia
-
-[http_service]
-  internal_port        = 5000
-  force_https          = true
-  auto_stop_machines   = false   # nunca duerme
-  min_machines_running = 1
-
-[[vm]]
-  cpu_kind = "shared"
-  cpus     = 1
-  memory   = "256mb"
-```
-
-> **Nota:** La región `mia` (Miami) está deprecada en Fly.io. Se usa `dfw` (Dallas).
-
----
-
-### 3. Vercel — Frontend React
-
-**CLI ya instalado globalmente:** `npx vercel`
-
-**Desplegar:**
 ```bash
-cd mistery-boxes/   # raíz del repo (NO entrar a frontend/)
+# Desde la raíz del repo (NO entrar a frontend/)
+cd /home/andy/work/mistery-boxes
+npx vercel link      # vincular proyecto (solo primera vez)
 npx vercel --prod
 ```
 
-Vercel detecta automáticamente que es un proyecto Vite, instala dependencias, corre `npm run build` y publica el `dist/` en su CDN global.
-
-> **Nota:** El proyecto tiene `rootDirectory = frontend` configurado en Vercel.
-> El `.vercel/project.json` de la raíz está en `.gitignore`. Al clonar en una nueva máquina,
-> correr `npx vercel link` desde la raíz para regenerarlo antes del primer deploy manual.
-
-**Variable de entorno** apuntando al backend de Fly.io:
-```bash
-echo "https://mistery-boxes-backend.fly.dev" | npx vercel env add VITE_API_BASE_URL production
-npx vercel --prod --yes   # redesplegar con la variable activa
-```
-
-**Archivo de configuración:** [`frontend/vercel.json`](frontend/vercel.json)
-
-```json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-
-El rewrite es necesario para que React Router maneje las rutas en el cliente (sin él, `/admin` daría 404).
+> Si clonas el repo en una máquina nueva, corre `npx vercel link` antes del primer deploy.
 
 ---
 
-## Actualizar en producción
-
-### Cambios en el backend
-```bash
-cd backend/
-fly deploy
-```
-
-### Cambios en el frontend
-```bash
-cd mistery-boxes/   # raíz del repo (NO entrar a frontend/)
-npx vercel --prod
-```
+## Comandos útiles
 
 ### Ver logs del backend en tiempo real
 ```bash
@@ -247,11 +224,19 @@ fly status --app mistery-boxes-backend
 fly machine list --app mistery-boxes-backend
 ```
 
-### Escalar (si hay más carga)
+### Reiniciar el backend sin redesplegar
 ```bash
-fly scale count 2 --app mistery-boxes-backend   # 2 máquinas
+fly machine restart --app mistery-boxes-backend
+```
+
+### Escalar si hay más carga
+```bash
+fly scale count 2 --app mistery-boxes-backend    # 2 máquinas
 fly scale memory 512 --app mistery-boxes-backend # más RAM
 ```
+
+### Ejecutar una consulta SQL directa en Neon
+Ir a: https://console.neon.tech/app/projects/small-union-65234467 → SQL Editor
 
 ---
 
@@ -260,10 +245,12 @@ fly scale memory 512 --app mistery-boxes-backend # más RAM
 | Problema | Causa | Solución |
 |---|---|---|
 | Backend devuelve 503 | Health check fallando | `fly deploy` para forzar reinicio |
-| `postgres://` en DATABASE_URL | Neon usa prefijo distinto | `config.py` normaliza automáticamente |
-| Frontend no llama al API | `VITE_API_BASE_URL` no definida | Revisar variables en Vercel dashboard |
+| Cajas no cargan / error 500 | Neon cierra conexiones inactivas | Ya resuelto con `pool_pre_ping` en `config.py` |
+| `postgres://` en DATABASE_URL | Neon usa prefijo distinto a SQLAlchemy | `config.py` normaliza automáticamente |
+| Frontend no llama al API | `VITE_API_BASE_URL` no definida en Vercel | Revisar variables en Vercel dashboard |
 | Ruta `/admin` da 404 | React Router necesita catch-all | Ya resuelto en `vercel.json` |
 | Región `mia` deprecada | Fly.io deprecó Miami | Usar `dfw` (Dallas) |
+| Build de Vercel falla | Error en el código JS/CSS | Ver log en vercel.com/dashboard |
 
 ---
 
@@ -274,6 +261,5 @@ fly scale memory 512 --app mistery-boxes-backend # más RAM
 | Vercel | Hobby (free) | $0 |
 | Fly.io | Free tier (1 máquina shared) | $0 |
 | Neon | Free tier (512 MB) | $0 |
-| **Total** | | **$0/mes** |
-
-Los tres servicios requieren tarjeta de crédito registrada pero no cobran mientras se mantenga dentro del free tier.
+| GoDaddy | Dominio mysteriesboxes.com | ~$15/año |
+| **Total** | | **~$1.25/mes** |

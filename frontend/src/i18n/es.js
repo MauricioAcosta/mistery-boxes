@@ -12,9 +12,9 @@ export const es = {
     heroTitleLine1: 'Abre Tu',
     heroSubtitle:
       'Cajas misterio premium con resultados verificables. Cada apertura es transparente y auditable.',
-    badgeFair: '✓ Juego Justo',
-    badgeInstant: '✓ Gana al Instante',
-    badgeReal: '✓ Productos Reales',
+    badgeFair: 'Juego Justo',       badgeFairSub: '100% Verificable',
+    badgeInstant: 'Gana al Instante', badgeInstantSub: 'Sin Esperas',
+    badgeReal: 'Productos Reales',    badgeRealSub: 'Artículos Originales',
     noBoxes: 'No hay cajas disponibles en esta categoría.',
     howItWorks: 'Cómo Funciona',
     howItWorksSub: 'Abre tu caja en 4 simples pasos',

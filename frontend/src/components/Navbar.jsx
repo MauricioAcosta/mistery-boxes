@@ -33,8 +33,7 @@ export default function Navbar() {
       <nav className="navbar">
         <div className="navbar-inner">
           <Link to="/" className="navbar-brand">
-            <span className="brand-icon">{theme.brandIcon}</span>
-            <span className="brand-name">{theme.brandName}</span>
+            <img src="/logo.png" className="brand-logo" alt="MysteryBoxes" />
           </Link>
 
           {/* Desktop links */}
@@ -86,10 +85,7 @@ export default function Navbar() {
         <div className="nav-mobile-overlay" onClick={() => setMenuOpen(false)}>
           <div className="nav-mobile-menu" onClick={e => e.stopPropagation()}>
             <div className="nav-mobile-header">
-              <span className="brand-icon">{theme.brandIcon}</span>
-              <span className="brand-name" style={{ fontWeight: 700, fontSize: '1.1rem' }}>
-                {theme.brandName}
-              </span>
+              <img src="/logo.png" className="brand-logo" alt="MysteryBoxes" />
               <button className="nav-mobile-close" onClick={() => setMenuOpen(false)}>✕</button>
             </div>
 
